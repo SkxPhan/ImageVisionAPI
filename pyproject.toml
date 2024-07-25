@@ -1,15 +1,16 @@
 [tool.poetry]
 name = "imagevisionai"
-version = "0.1.0"
+version = "0.0.1"
 description = "Real-Time Image Classification Web Application with FastAPI and Gradio"
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
-license = "MIT License"
+license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.111.1"
 uvicorn = "^0.30.3"
+gunicorn = "^22.0.0"
 SQLAlchemy = "^2.0.31"
 pydantic = "^2.8.2"
 psycopg = "^3.2.1"
