@@ -23,7 +23,10 @@ class Preprocessor(torch.nn.Module):
 
 class ImageClassifier:
     def __init__(
-        self, model_path, categories_path="imagenet_classes.txt", device=None
+        self,
+        model_path="mobilenet_v3_large.pth",
+        categories_path="imagenet_classes.txt",
+        device=None,
     ):
         self._preprocessor = Preprocessor()
 
@@ -56,8 +59,7 @@ class ImageClassifier:
         except Exception as e:
             raise RuntimeError(f"Error loading categories: {e}")
 
-    def predict(self, image_path):
-        image = Image.open(image_path)
+    def predict(self, image):
         input_tensor = self._preprocessor(image).unsqueeze(0).to(self._device)
 
         with torch.no_grad():
@@ -73,8 +75,8 @@ class ImageClassifier:
             for prob, catid in zip(top_prob, top_catid)
         ]
 
-    def predict_category(self, image_path):
-        probabilities = self.predict(image_path)
+    def predict_category(self, image):
+        probabilities = self.predict(image)
         top_2_predictions = self.top_k_predictions(probabilities, 2)
         threshold_mul = 2
         if top_2_predictions[0][1] > top_2_predictions[1][1] * threshold_mul:
@@ -91,7 +93,8 @@ def main():
     classifier = ImageClassifier(model_path)
 
     # Perform prediction
-    probabilities = classifier.predict(image_file)
+    image = Image.open(image_file)
+    probabilities = classifier.predict(image)
 
     # Get top 5 predictions
     top_predictions = classifier.top_k_predictions(probabilities, k=5)
@@ -101,7 +104,7 @@ def main():
         print(f"{category}: {prob:.4f}")
 
     # Print the category directly
-    category, prob = classifier.predict_category(image_file)
+    category, prob = classifier.predict_category(image)
     print(f"This is a {category} (probability: {prob:.4f})")
 
 

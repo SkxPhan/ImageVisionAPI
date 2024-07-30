@@ -1,8 +1,26 @@
+import io
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from models.cnn_model import ImageClassifier
 from PIL import Image
-import io
+
+
+ml_models = {}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    ml_models["image_classifier"] = ImageClassifier(
+        model_path="models/mobilenet_v3_large.pth",
+        categories_path="models/imagenet_classes.txt",
+    )
+    yield
+    # Clean up the ML models and release the resources
+    ml_models.clear()
+
 
 # Initialize API Server
 app = FastAPI(
@@ -12,25 +30,25 @@ app = FastAPI(
     terms_of_service=None,
     contact=None,
     license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
+    lifespan=lifespan,
 )
 
 
-@app.post("/upload-image/")
+@app.post("/api/v1/predict/")
 async def upload_image(file: UploadFile = File(...)):
-    # Read image file
     image_data = await file.read()
-
-    # Convert to PIL Image
     image = Image.open(io.BytesIO(image_data))
 
-    # Example of processing the image
-    # For instance, get the size of the image
     width, height = image.size
+    category, prob = ml_models["image_classifier"].predict_category(image)
 
-    # Return some response
-    return JSONResponse(
-        content={"filename": file.filename, "width": width, "height": height}
-    )
+    return {
+        "filename": file.filename,
+        "width": width,
+        "height": height,
+        "prediction": category,
+        "probability": prob,
+    }
 
 
 if __name__ == "__main__":
