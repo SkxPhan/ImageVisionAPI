@@ -1,6 +1,6 @@
 # from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class InferenceResult(BaseModel):
@@ -14,19 +14,19 @@ class InferenceResult(BaseModel):
     prediction: str = Field(..., title="Image category")
     probability: float = Field(..., title="Image category probability")
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": {
-                "successful_inference": {
-                    "filename": "dog.jpg",
-                    "width": 640,
-                    "height": 480,
-                    "prediction": "Dog",
-                    "probability": 0.9735,
-                }
-            }
-        }
-    )
+    # model_config = ConfigDict(
+    #     json_schema_extra={
+    #         "examples": {
+    #             "successful_inference": {
+    #                 "filename": "dog.jpg",
+    #                 "width": 640,
+    #                 "height": 480,
+    #                 "prediction": "Dog",
+    #                 "probability": 0.9735,
+    #             }
+    #         }
+    #     }
+    # )
 
 
 class InferenceResponse(BaseModel):
@@ -37,18 +37,18 @@ class InferenceResponse(BaseModel):
     error: bool = Field(..., title="Whether there is error")
     results: InferenceResult
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": {
-                "successful_response": {
-                    "error": False,
-                    "results": InferenceResult.model_config[
-                        "json_schema_extra"
-                    ]["examples"]["successful_inference"],
-                }
-            }
-        }
-    )
+    # model_config = ConfigDict(
+    #     json_schema_extra={
+    #         "examples": {
+    #             "successful_response": {
+    #                 "error": False,
+    #                 "results": InferenceResult.model_config[
+    #                     "json_schema_extra"
+    #                 ]["examples"]["successful_inference"],
+    #             }
+    #         }
+    #     }
+    # )
 
 
 class ErrorResponse(BaseModel):
@@ -60,14 +60,14 @@ class ErrorResponse(BaseModel):
     message: str = Field(..., title="Error message")
     traceback: str = Field(None, title="Detailed traceback of the error")
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": {
-                "error_case": {
-                    "error": True,
-                    "message": "An error occurred",
-                    "traceback": "Traceback details here",
-                }
-            }
-        }
-    )
+    # model_config = ConfigDict(
+    #     json_schema_extra={
+    #         "examples": {
+    #             "error_case": {
+    #                 "error": True,
+    #                 "message": "An error occurred",
+    #                 "traceback": "Traceback details here",
+    #             }
+    #         }
+    #     }
+    # )
