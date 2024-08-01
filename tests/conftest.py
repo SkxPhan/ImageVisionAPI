@@ -7,11 +7,6 @@ from PIL import Image
 from image_vision_ai.app.main import app, ml_models
 
 
-class MockImageClassifier:
-    def predict_category(self, image):
-        return "mock_category", 0.99
-
-
 @pytest.fixture(scope="function")
 def test_client():
     """Create a test client."""
@@ -31,6 +26,10 @@ def image_file():
 
 @pytest.fixture(scope="function")
 def mock_image_classifier(monkeypatch):
+    class MockImageClassifier:
+        def predict_category(self, image):
+            return "mock_category", 0.99
+
     original_image_classifier = ml_models.get("image_classifier")
     monkeypatch.setitem(ml_models, "image_classifier", MockImageClassifier())
 
