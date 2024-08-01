@@ -9,8 +9,8 @@ from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
-import app.schemas as schemas
-from models.cnn_model import ImageClassifier
+import image_vision_ai.app.schemas as schemas
+from image_vision_ai.models.cnn_model import ImageClassifier
 
 ml_models = {}
 
@@ -22,9 +22,11 @@ origins = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the ML model
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_directory = os.path.dirname(current_directory)
     ml_models["image_classifier"] = ImageClassifier(
-        model_path="models/mobilenet_v3_large.pth",
-        categories_path="models/imagenet_classes.txt",
+        model_path=parent_directory + "/models/mobilenet_v3_large.pth",
+        categories_path=parent_directory + "/models/imagenet_classes.txt",
     )
     yield
     # Clean up the ML models and release the resources

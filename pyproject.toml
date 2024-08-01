@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "imagevisionai"
+name = "image_vision_ai"
 version = "0.0.1"
 description = "Real-Time Image Classification Web Application with FastAPI and Gradio"
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
