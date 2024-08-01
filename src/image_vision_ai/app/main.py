@@ -58,7 +58,7 @@ app.add_middleware(
     status_code=status.HTTP_200_OK,
     response_model=schemas.InferenceResponse,
 )
-async def upload_image(file: UploadFile = File(...)):
+async def predict(file: UploadFile = File(...)):
     try:
         image_data = await file.read()
         image = Image.open(io.BytesIO(image_data))
@@ -82,7 +82,7 @@ async def upload_image(file: UploadFile = File(...)):
 
 
 @app.get("/api/v1/healthchecker")
-def root():
+def healthchecker():
     return {"message": "The API is LIVE!!"}
 
 
