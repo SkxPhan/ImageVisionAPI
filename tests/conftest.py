@@ -30,7 +30,15 @@ def image_file():
 
 
 @pytest.fixture(scope="function")
-def mock_image_classifier():
-    ml_models["image_classifier"] = MockImageClassifier()
+def mock_image_classifier(monkeypatch):
+    original_image_classifier = ml_models.get("image_classifier")
+    monkeypatch.setitem(ml_models, "image_classifier", MockImageClassifier())
+
     yield
-    ml_models.clear()
+
+    if original_image_classifier:
+        monkeypatch.setitem(
+            ml_models, "image_classifier", original_image_classifier
+        )
+    else:
+        ml_models.pop("image_classifier", None)
