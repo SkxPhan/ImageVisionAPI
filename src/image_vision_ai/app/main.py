@@ -65,13 +65,13 @@ async def predict(file: UploadFile = File(...)):
 
         width, height = image.size
         category, prob = ml_models["image_classifier"].predict_category(image)
-        results = {
-            "filename": file.filename,
-            "width": width,
-            "height": height,
-            "prediction": category,
-            "probability": prob,
-        }
+        results = schemas.InferenceResult(
+            filename=str(file.filename),
+            width=width,
+            height=height,
+            prediction=category,
+            probability=prob,
+        )
         return schemas.InferenceResponse(error=False, results=results)
 
     except Exception as e:
@@ -113,6 +113,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8080,
         reload=True,
-        debug=True,
         log_config="log.ini",
     )
