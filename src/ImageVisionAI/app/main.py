@@ -1,11 +1,16 @@
 import io
+import os
+import sys
 from contextlib import asynccontextmanager
 
+import torch
 import uvicorn
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from models.cnn_model import ImageClassifier
 from PIL import Image
+
+import app.schemas as schemas
+from models.cnn_model import ImageClassifier
 
 ml_models = {}
 
@@ -46,20 +51,57 @@ app.add_middleware(
 )
 
 
-@app.post("/api/v1/predict/")
+@app.post(
+    "/api/v1/predict/",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.InferenceResponse,
+)
 async def upload_image(file: UploadFile = File(...)):
-    image_data = await file.read()
-    image = Image.open(io.BytesIO(image_data))
+    try:
+        image_data = await file.read()
+        image = Image.open(io.BytesIO(image_data))
 
-    width, height = image.size
-    category, prob = ml_models["image_classifier"].predict_category(image)
+        width, height = image.size
+        category, prob = ml_models["image_classifier"].predict_category(image)
+        results = {
+            "filename": file.filename,
+            "width": width,
+            "height": height,
+            "prediction": category,
+            "probability": prob,
+        }
+        return schemas.InferenceResponse(error=False, results=results)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while classifying the image.",
+        ) from e
+
+
+@app.get("/api/v1/healthchecker")
+def root():
+    return {"message": "The API is LIVE!!"}
+
+
+@app.get("/api/v1/about")
+def show_about():
+    """
+    Get deployment information, for debugging
+    """
+
+    def bash(command):
+        output = os.popen(command).read()
+        return output
 
     return {
-        "filename": file.filename,
-        "width": width,
-        "height": height,
-        "prediction": category,
-        "probability": prob,
+        "sys.version": sys.version,
+        "torch.__version__": torch.__version__,
+        "torch.cuda.is_available()": torch.cuda.is_available(),
+        "torch.version.cuda": torch.version.cuda,
+        "torch.backends.cudnn.version()": torch.backends.cudnn.version(),
+        "torch.backends.cudnn.enabled": torch.backends.cudnn.enabled,
+        "nvidia-smi": bash("nvidia-smi"),
     }
 
 

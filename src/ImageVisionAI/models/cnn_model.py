@@ -1,6 +1,6 @@
 import torch
-from torchvision import transforms, models
 from PIL import Image
+from torchvision import models, transforms
 
 
 class Preprocessor(torch.nn.Module):
