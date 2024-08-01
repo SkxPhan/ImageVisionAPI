@@ -3,11 +3,15 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from models.cnn_model import ImageClassifier
 from PIL import Image
 
-
 ml_models = {}
+
+origins = [
+    "http://localhost:3000",
+]
 
 
 @asynccontextmanager
@@ -31,6 +35,14 @@ app = FastAPI(
     contact=None,
     license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
