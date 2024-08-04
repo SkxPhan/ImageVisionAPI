@@ -3,17 +3,14 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-import image_vision_ai.app.schemas as schemas
 import torch
 import uvicorn
-from fastapi import FastAPI
-from fastapi import File
-from fastapi import HTTPException
-from fastapi import status
-from fastapi import UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from image_vision_ai.models.cnn_model import ImageClassifier
 from PIL import Image
+
+import image_vision_ai.app.schemas as schemas
+from image_vision_ai.models.cnn_model import ImageClassifier
 
 ml_models = {}
 

@@ -5,7 +5,7 @@ from torchvision import models, transforms
 
 class Preprocessor(torch.nn.Module):
     def __init__(self):
-        super(Preprocessor, self).__init__()
+        super().__init__()
         self._transform = transforms.Compose(
             [
                 transforms.Resize(256),
@@ -52,7 +52,7 @@ class ImageClassifier:
 
     def _load_categories(self, categories_path):
         try:
-            with open(categories_path, "r") as f:
+            with open(categories_path) as f:
                 return [s.strip() for s in f.readlines()]
         except FileNotFoundError:
             raise ValueError(f"Categories file not found: {categories_path}")
