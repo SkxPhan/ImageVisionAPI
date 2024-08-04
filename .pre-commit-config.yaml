@@ -48,4 +48,4 @@ repos:
       exclude: ^tests/
       args:
         - --skip
-        - B104,B404,B603
+        - B104,B605

@@ -1,6 +1,5 @@
 import io
 import os
-import subprocess
 import sys
 from contextlib import asynccontextmanager
 
@@ -94,11 +93,8 @@ def show_about():
     """
 
     def bash(command):
-        # Ensure `shell=False` to prevent shell injection vulnerabilities
-        result = subprocess.run(
-            command, capture_output=True, text=True, shell=False, check=True
-        )
-        return result.stdout
+        output = os.popen(command).read()
+        return output
 
     return {
         "sys.version": sys.version,
