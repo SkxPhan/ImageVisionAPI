@@ -17,11 +17,11 @@ repos:
     -   id: black
         args: [--line-length=80, --safe]
 
--   repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.13.0
+-   repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
     hooks:
-    -   id: reorder-python-imports
-        args: [--py312-plus]
+    -   id: isort
+        args: [--profile=black]
 
 -   repo: https://github.com/asottile/pyupgrade
     rev: v3.17.0
