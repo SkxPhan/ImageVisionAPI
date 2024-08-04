@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "image_vision_ai"
 version = "0.0.1"
@@ -29,6 +33,7 @@ isort = "^5.13.2"
 bandit = "^1.7.9"
 pylint = "^3.2.6"
 flake8-pyproject = "^1.2.3"
+pre-commit = "^3.8.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.1"
@@ -57,7 +62,3 @@ no_implicit_reexport = true
 
 [tool.flake8]
 max-line-length = 80
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
