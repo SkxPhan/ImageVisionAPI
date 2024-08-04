@@ -1,0 +1,45 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+    -   id: debug-statements
+        language_version: python3
+
+-   repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+    -   id: black
+        args: [--line-length=80, --safe]
+
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v3.13.0
+    hooks:
+    -   id: reorder-python-imports
+        args: [--py312-plus]
+
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.17.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py312-plus]
+
+-   repo: https://github.com/PyCQA/flake8
+    rev: 7.1.0
+    hooks:
+    -   id: flake8
+        language_version: python3
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.1
+    hooks:
+    -   id: mypy
+        files: ^src/
+
+    -   id: mypy
+        files: ^tests/
