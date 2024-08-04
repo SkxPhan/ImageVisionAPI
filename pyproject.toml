@@ -1,5 +1,9 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
-name = "imagevisionai"
+name = "image_vision_ai"
 version = "0.0.1"
 description = "Real-Time Image Classification Web Application with FastAPI and Gradio"
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
@@ -27,13 +31,33 @@ mypy = "^1.11.0"
 black = "^24.4.2"
 isort = "^5.13.2"
 bandit = "^1.7.9"
-pylint = "^3.2.6"
+flake8-pyproject = "^1.2.3"
+pre-commit = "^3.8.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.1"
 pytest-cov = "^5.0.0"
 tox = "^4.16.0"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.pytest.ini_options]
+addopts = "--cov=image_vision_ai"
+testpaths = [
+    "tests",
+]
+
+[tool.mypy]
+mypy_path = "src"
+check_untyped_defs = true
+disallow_any_generics = true
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+no_implicit_reexport = true
+
+[tool.flake8]
+max-line-length = 80
