@@ -40,3 +40,12 @@ repos:
     hooks:
     -   id: mypy
         files: ^(src|tests)/
+
+-   repo: https://github.com/PyCQA/bandit
+    rev: 1.7.9
+    hooks:
+    - id: bandit
+      exclude: ^tests/
+      args:
+        - --skip
+        - B104,B404,B603
