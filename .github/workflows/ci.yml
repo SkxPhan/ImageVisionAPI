@@ -53,3 +53,19 @@ jobs:
 
         - name: Run Pre-commit hooks
           run: pre-commit run --all-files --show-diff-on-failure
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t image_vision_ai:${{ github.sha }} .
+
+      # - name: (Optional) Push Docker image
+      #   run: |
+      #     docker tag ImageVisionAi:${{ github.sha }} ImageVisionAi/image_vision_ai:${{ github.sha }}
+      #     docker push ImageVisionAi/image_vision_ai:${{ github.sha }}
