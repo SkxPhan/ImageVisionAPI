@@ -54,7 +54,7 @@ jobs:
         - name: Run Pre-commit hooks
           run: pre-commit run --all-files --show-diff-on-failure
 
-  build:
+  build-docker-image:
     runs-on: ubuntu-latest
     needs: [build-and-test, code-quality]
     steps:
