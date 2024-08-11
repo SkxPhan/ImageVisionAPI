@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from image_vision_ai.app.main import app, ml_models
+from app.main import app, ml_models
 
 
 @pytest.fixture(scope="function")
