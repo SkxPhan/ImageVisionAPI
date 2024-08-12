@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       ./src/app/.env
+    environment:
+      POSTGRES_HOST: postgres
     ports:
       - 8000:8000
 
