@@ -58,7 +58,7 @@ app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
 
 @app.get("/api/healthchecker")
 def healthchecker():
-    return {"message": "The API is LIVE!!"}
+    return {"message": "The API is LIVE!"}
 
 
 @app.get("/api/about")

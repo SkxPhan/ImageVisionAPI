@@ -46,6 +46,11 @@ addopts = "--cov=src"
 testpaths = [
     "tests",
 ]
+markers = [
+    "unit: mark a test as a unit test",
+    "integration: mark a test as an integration test",
+    "api: mark a test as an api test",
+]
 
 [tool.mypy]
 mypy_path = "src"
