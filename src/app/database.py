@@ -16,8 +16,6 @@ SQLALCHEMY_DATABASE_URL = (
     f"@{POSTGRES_HOST}/{POSTGRES_DB}"
 )
 
-print(SQLALCHEMY_DATABASE_URL)
-
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
 )
