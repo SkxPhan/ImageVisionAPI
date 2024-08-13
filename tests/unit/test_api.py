@@ -17,10 +17,9 @@ def test_show_about(test_client):
 @pytest.mark.api
 @pytest.mark.integration
 def test_predict(test_client, image_file, mock_image_classifier):
-    image_data, filename = image_file
     response = test_client.post(
         "/api/v1/ml/predict/",
-        files={"file": (filename, image_data)},
+        files=image_file,
     )
 
     assert response.status_code == 200

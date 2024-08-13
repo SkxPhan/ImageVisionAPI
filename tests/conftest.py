@@ -21,7 +21,7 @@ def image_file():
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    return buf, "test_image.png"
+    return {"file": ("test_image.png", buf)}
 
 
 @pytest.fixture(scope="function")
