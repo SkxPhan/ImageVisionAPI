@@ -19,7 +19,7 @@ def test_predict(test_client, image_file, mock_image_classifier):
     assert response.status_code == 200
     response_data = response.json()
 
-    assert not response_data["error"]
+    assert response_data["status"] == "Success"
     assert response_data["results"]["filename"] == "test_image.png"
     assert response_data["results"]["width"] == 100
     assert response_data["results"]["height"] == 100

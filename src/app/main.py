@@ -9,8 +9,12 @@ from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
+from app.database import engine
 from app.ml.cnn_model import ImageClassifier
+from app.models import Base
 from app.schemas import schemas
+
+Base.metadata.create_all(bind=engine)
 
 ml_models = {}
 

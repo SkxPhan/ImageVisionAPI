@@ -1,5 +1,12 @@
 # from typing import Any, Dict, List, Optional
+from enum import Enum
+
 from pydantic import BaseModel, Field
+
+
+class Status(str, Enum):
+    Success = "Success"
+    Error = "Error"
 
 
 class InferenceResult(BaseModel):
@@ -33,7 +40,7 @@ class InferenceResponse(BaseModel):
     Output response for model inference
     """
 
-    error: bool = Field(..., title="Whether there is error")
+    status: Status = Status.Success
     results: InferenceResult
 
     # model_config = ConfigDict(
@@ -55,7 +62,7 @@ class ErrorResponse(BaseModel):
     Error response for the API
     """
 
-    error: bool = Field(..., title="Whether there is error")
+    status: Status = Status.Error
     message: str = Field(..., title="Error message")
     traceback: str = Field(None, title="Detailed traceback of the error")
 
