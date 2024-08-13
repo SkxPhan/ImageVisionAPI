@@ -22,9 +22,23 @@ async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
         image_data = await file.read()
 
+        image = Image.open(io.BytesIO(image_data))
+        width, height = image.size
+        category, prob = ml_models["image_classifier"].predict_category(image)
+        results = schemas.InferenceResult(
+            filename=str(file.filename),
+            width=width,
+            height=height,
+            prediction=category,
+            probability=prob,
+        )
+
         try:
             new_image = models.ImageORM(
-                filename=file.filename, image_data=image_data
+                filename=file.filename,
+                image_data=image_data,
+                classification=category,
+                probability=prob,
             )
             db.add(new_image)
             db.commit()
@@ -36,16 +50,6 @@ async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
                 detail=f"An error occurred while saving the image: {str(e)}",
             )
 
-        image = Image.open(io.BytesIO(image_data))
-        width, height = image.size
-        category, prob = ml_models["image_classifier"].predict_category(image)
-        results = schemas.InferenceResult(
-            filename=str(file.filename),
-            width=width,
-            height=height,
-            prediction=category,
-            probability=prob,
-        )
         return schemas.InferenceResponse(error=False, results=results)
 
     except Exception as e:
