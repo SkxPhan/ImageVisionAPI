@@ -1,8 +1,11 @@
 import io
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from PIL import Image
+from sqlalchemy.orm import Session
 
+import app.models as models
+from app.database import get_db
 from app.schemas import schemas
 
 router: APIRouter = APIRouter()
@@ -13,15 +16,27 @@ router: APIRouter = APIRouter()
     status_code=status.HTTP_200_OK,
     response_model=schemas.InferenceResponse,
 )
-async def predict(file: UploadFile = File(...)):
+async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
     from app.main import ml_models
 
     try:
         image_data = await file.read()
+
+        try:
+            new_image = models.ImageORM(
+                filename=file.filename, image_data=image_data
+            )
+            db.add(new_image)
+            db.commit()
+            db.refresh(new_image)
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An error occurred while saving the image: {str(e)}",
+            )
+
         image = Image.open(io.BytesIO(image_data))
-
-        # Save image
-
         width, height = image.size
         category, prob = ml_models["image_classifier"].predict_category(image)
         results = schemas.InferenceResult(
