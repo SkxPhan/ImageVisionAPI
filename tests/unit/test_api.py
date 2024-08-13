@@ -2,23 +2,25 @@ import pytest
 
 
 @pytest.mark.api
-def test_healthchecker(test_client):
-    response = test_client.get("/api/healthchecker")
+def test_healthchecker(test_client, healthchecker_endpoint):
+    response = test_client.get(healthchecker_endpoint)
     assert response.status_code == 200
     assert response.json() == {"message": "The API is LIVE!"}
 
 
 @pytest.mark.api
-def test_show_about(test_client):
-    response = test_client.get("/api/about")
+def test_show_about(test_client, about_endpoint):
+    response = test_client.get(about_endpoint)
     assert response.status_code == 200
 
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_predict(test_client, image_file, mock_image_classifier):
+def test_predict(
+    test_client, image_file, mock_image_classifier, predict_endpoint
+):
     response = test_client.post(
-        "/api/v1/ml/predict/",
+        predict_endpoint,
         files=image_file,
     )
 
