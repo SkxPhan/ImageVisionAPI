@@ -1,26 +1,24 @@
-import io
 import os
 import sys
 from contextlib import asynccontextmanager
 
 import torch
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 
 from app.database import engine
 from app.ml.cnn_model import ImageClassifier
 from app.models import Base
-from app.schemas import schemas
-
-Base.metadata.create_all(bind=engine)
-
-ml_models = {}
+from app.routers import ml
 
 origins = [
     "http://localhost:3000",
 ]
+
+Base.metadata.create_all(bind=engine)
+
+ml_models = {}
 
 
 @asynccontextmanager
@@ -55,43 +53,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.post(
-    "/api/v1/predict/",
-    status_code=status.HTTP_200_OK,
-    response_model=schemas.InferenceResponse,
-)
-async def predict(file: UploadFile = File(...)):
-    try:
-        image_data = await file.read()
-        image = Image.open(io.BytesIO(image_data))
-
-        # Save image
-
-        width, height = image.size
-        category, prob = ml_models["image_classifier"].predict_category(image)
-        results = schemas.InferenceResult(
-            filename=str(file.filename),
-            width=width,
-            height=height,
-            prediction=category,
-            probability=prob,
-        )
-        return schemas.InferenceResponse(error=False, results=results)
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while classifying the image.",
-        ) from e
+app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
 
 
-@app.get("/api/v1/healthchecker")
+@app.get("/api/healthchecker")
 def healthchecker():
     return {"message": "The API is LIVE!!"}
 
 
-@app.get("/api/v1/about")
+@app.get("/api/about")
 def show_about():
     """
     Get deployment information, for debugging
