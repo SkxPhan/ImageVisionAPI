@@ -162,6 +162,3 @@ cython_debug/
 #.idea/
 
 .DS_store
-
-# Temporary test data
-test*.db
