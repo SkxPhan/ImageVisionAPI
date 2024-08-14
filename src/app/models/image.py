@@ -1,8 +1,5 @@
-import uuid
-
-from sqlalchemy import TIMESTAMP, Column, LargeBinary, Numeric, String
+from sqlalchemy import TIMESTAMP, Column, Integer, LargeBinary, Numeric, String
 from sqlalchemy.sql import func
-from sqlalchemy_utils import UUIDType
 
 from app.database import Base
 
@@ -10,7 +7,7 @@ from app.database import Base
 class ImageORM(Base):
     __tablename__ = "image"
 
-    id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     filename = Column(String(255), nullable=False)
     image_data = Column(LargeBinary, nullable=False)
     classification = Column(String(255), nullable=True)
