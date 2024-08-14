@@ -63,9 +63,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ImageVisionAI:${{ github.sha }} .
+          docker build -t image_vision_ai:${{ github.sha }} .
 
       # - name: (Optional) Push Docker image
       #   run: |
-      #     docker tag ImageVisionAi:${{ github.sha }} ImageVisionAi/ImageVisionAI:${{ github.sha }}
-      #     docker push ImageVisionAi/ImageVisionAI:${{ github.sha }}
+      #     docker tag image_vision_ai:${{ github.sha }} image_vision_ai/image_vision_ai:${{ github.sha }}
+      #     docker push image_vision_ai/image_vision_ai:${{ github.sha }}
