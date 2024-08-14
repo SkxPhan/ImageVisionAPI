@@ -102,6 +102,20 @@ def predict_endpoint():
 
 
 @pytest.fixture(scope="function")
+def register_endpoint():
+    return "/api/v1/auth/register/"
+
+
+@pytest.fixture(scope="function")
+def user_payload():
+    return {
+        "username": "JohnDoe",
+        "email": "johndoe@example.com",
+        "password": "password",
+    }
+
+
+@pytest.fixture(scope="function")
 def image_file():
     img = Image.new("RGB", (100, 100), color="red")
     buf = io.BytesIO()

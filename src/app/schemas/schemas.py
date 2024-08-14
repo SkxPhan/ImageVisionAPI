@@ -1,7 +1,7 @@
 # from typing import Any, Dict, List, Optional
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class Status(str, Enum):
@@ -62,7 +62,7 @@ class InferenceResponse(BaseModel):
     """
 
     status: Status = Field(
-        default=Status.Success,
+        ...,
         description="The status of the operation",
     )
     results: InferenceResult
@@ -91,5 +91,71 @@ class ErrorResponse(BaseModel):
         json_schema_extra={
             "example": "Traceback details here",
             "description": "Detailed traceback of the error",
+        },
+    )
+
+
+class UserCreate(BaseModel):
+    username: str = Field(
+        ...,
+        title="Username",
+        json_schema_extra={
+            "example": "JohnDoe",
+            "description": "Username",
+        },
+    )
+    email: EmailStr = Field(
+        ...,
+        title="Email address",
+        json_schema_extra={
+            "example": "example@example.com",
+            "description": "Email address",
+        },
+    )
+    password: str = Field(
+        ...,
+        title="Password",
+        json_schema_extra={
+            "example": "Password",
+            "description": "Password of minimum 8 characters.",
+        },
+    )
+    is_active: bool = Field(
+        default=True,
+        json_schema_extra={
+            "example": "true",
+            "description": (
+                "Indicates whether the user account is active or not",
+            ),
+        },
+    )
+
+    @field_validator("email")
+    def email_format(cls, v):
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address format")
+        return v
+
+    @field_validator("password")
+    def password_length(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
+
+class RegisterResponse(BaseModel):
+    status: Status = Field(
+        ...,
+        description="The status of the operation",
+    )
+    message: str = Field(
+        ...,
+        title="Message confirmation",
+        json_schema_extra={
+            "example": "User JohnDoe registered successfully.",
+            "description": (
+                "Confirmation message with the username of the registered "
+                "user.",
+            ),
         },
     )

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
 from app.ml.cnn_model import ImageClassifier
-from app.routers import ml
+from app.routers import auth, ml
 
 origins = [
     "http://localhost:3000",
@@ -54,6 +54,7 @@ app.add_middleware(
 )
 
 app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
+app.include_router(auth.router, tags=["auth"], prefix="/api/v1/auth")
 
 
 @app.get("/api/healthchecker")
