@@ -55,4 +55,4 @@ async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
             detail="An error occurred while saving the image.",
         )
 
-    return schemas.InferenceResponse(error=False, results=results)
+    return schemas.InferenceResponse(status="Success", results=results)
