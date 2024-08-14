@@ -7,22 +7,22 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import engine
+from app.database import init_db
 from app.ml.cnn_model import ImageClassifier
-from app.models import Base
 from app.routers import ml
 
 origins = [
     "http://localhost:3000",
 ]
 
-Base.metadata.create_all(bind=engine)
-
 ml_models = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize the db
+    init_db()
+
     # Load the ML model
     current_directory = os.path.dirname(os.path.abspath(__file__))
     ml_models["image_classifier"] = ImageClassifier(
