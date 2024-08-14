@@ -32,28 +32,27 @@ async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
             prediction=category,
             probability=prob,
         )
-
-        try:
-            new_image = models.ImageORM(
-                filename=file.filename,
-                image_data=image_data,
-                classification=category,
-                probability=prob,
-            )
-            db.add(new_image)
-            db.commit()
-            db.refresh(new_image)
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"An error occurred while saving the image: {str(e)}",
-            )
-
-        return schemas.InferenceResponse(error=False, results=results)
-
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while classifying the image.",
-        ) from e
+        )
+
+    try:
+        new_image = models.ImageORM(
+            filename=file.filename,
+            image_data=image_data,
+            classification=category,
+            probability=prob,
+        )
+        db.add(new_image)
+        db.commit()
+        db.refresh(new_image)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while saving the image.",
+        )
+
+    return schemas.InferenceResponse(error=False, results=results)
