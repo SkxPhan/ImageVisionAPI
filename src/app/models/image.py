@@ -16,9 +16,9 @@ class ImageORM(Base):
     classification = Column(String(255), nullable=True)
     probability = Column(Numeric(5, 4), nullable=True)
 
-    createdAt = Column(
+    creationdate = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
-    updatedAt = Column(
+    updatedate = Column(
         TIMESTAMP(timezone=True), default=None, onupdate=func.now()
     )
