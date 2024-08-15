@@ -1,8 +1,10 @@
 import os
+from datetime import datetime
+from typing import Any
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import DateTime, String, create_engine
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, sessionmaker
 
 load_dotenv()
 
@@ -21,7 +23,17 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+Base: Any = declarative_base()
+
+
+class TokenBlacklist(Base):
+    __tablename__ = "token_blacklist"
+
+    id: Mapped[int] = mapped_column(
+        "id", autoincrement=True, nullable=False, unique=True, primary_key=True
+    )
+    token: Mapped[str] = mapped_column(String, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
 
 
 def init_db():

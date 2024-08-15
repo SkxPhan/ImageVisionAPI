@@ -5,13 +5,14 @@ from typing import Annotated, Any, Literal
 import bcrypt
 import jwt
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
 import app.models as models
-from app.database import get_db
+from app.database import TokenBlacklist, get_db
 from app.schemas import schemas
 
 router: APIRouter = APIRouter()
@@ -88,16 +89,30 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        # query token
+        is_blacklisted = (
+            db.query(TokenBlacklist)
+            .filter(TokenBlacklist.token == token)
+            .first()
+            is not None
+        )
+        if is_blacklisted:
+            raise credentials_exception
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
+
         token_data = schemas.TokenData(username=username)
+
     except InvalidTokenError:
         raise credentials_exception
+
     user = get_user(username=token_data.username, db=db)
     if user is None:
         raise credentials_exception
+
     return user
 
 
@@ -107,6 +122,16 @@ async def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+def blacklist_token(token: str, db: Session) -> None:
+    from app.database import TokenBlacklist
+
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    expires_at = datetime.fromtimestamp(payload.get("exp"))
+    token_blacklist = TokenBlacklist(token=token, expires_at=expires_at)
+    db.add(token_blacklist)
+    db.commit()
 
 
 @router.post(
@@ -159,6 +184,23 @@ async def login_for_access_token(
     return schemas.Token(
         access_token=access_token, token_type="bearer"
     )  # nosec
+
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    access_token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, str]:
+    try:
+        blacklist_token(token=access_token, db=db)
+        return {"message": "Logged out successfully"}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 @router.get("/users/me", response_model=schemas.User)
