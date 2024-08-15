@@ -55,6 +55,11 @@ class InferenceResult(BaseModel):
         },
     )
 
+    @field_validator("probability")
+    def probability_format(cls, v):
+        ...
+        return round(v, 5)
+
 
 class InferenceResponse(BaseModel):
     """
