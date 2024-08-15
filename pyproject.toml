@@ -9,9 +9,7 @@ description = "Real-Time Image Classification Web Application with FastAPI and G
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [
-    { include = "app", from = "src" }
-]
+packages = [{ include = "app", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -45,13 +43,11 @@ pre-commit = "^3.8.0"
 
 [tool.pytest.ini_options]
 addopts = "--cov=src"
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 markers = [
     "unit: mark a test as a unit test",
     "integration: mark a test as an integration test",
-    "api: mark a test as an api test",
+    "api: mark a test as an api test"
 ]
 
 [tool.mypy]
@@ -70,3 +66,6 @@ no_implicit_reexport = true
 
 [tool.flake8]
 max-line-length = 80
+
+[tool.black]
+line-length = 80
