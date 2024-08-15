@@ -79,7 +79,8 @@ def create_access_token(
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -114,7 +115,7 @@ async def get_current_active_user(
     response_model=schemas.RegisterResponse,
 )
 async def register_user(
-    user: schemas.UserCreate, db: Session = Depends(get_db)
+    user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]
 ):
     try:
         hashed_password = get_password_hash(user.password)
@@ -142,7 +143,7 @@ async def register_user(
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Token:
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:

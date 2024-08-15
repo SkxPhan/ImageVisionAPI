@@ -1,6 +1,7 @@
 import io
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from PIL import Image
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ router: APIRouter = APIRouter()
     status_code=status.HTTP_200_OK,
     response_model=schemas.InferenceResponse,
 )
-async def predict(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def predict(file: UploadFile, db: Annotated[Session, Depends(get_db)]):
     from app.main import ml_models
 
     try:
