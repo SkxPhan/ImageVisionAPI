@@ -3,12 +3,13 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "image_vision_ai"
+name = "ImageVisionAI"
 version = "0.0.1"
 description = "Real-Time Image Classification Web Application with FastAPI and Gradio"
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [{ include = "app", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -16,6 +17,7 @@ fastapi = "^0.111.1"
 uvicorn = "^0.30.3"
 gunicorn = "^22.0.0"
 SQLAlchemy = "^2.0.31"
+sqlalchemy-utils = "^0.41.2"
 pydantic = "^2.8.2"
 gradio = "^4.38.1"
 python-jose = "^3.3.0"
@@ -23,7 +25,9 @@ requests = "^2.32.3"
 torch = "^2.3.1"
 torchvision = "^0.18.1"
 torchaudio = "^2.3.1"
-psycopg = {extras = ["binary"], version = "^3.2.1"}
+psycopg2-binary = "^2.9.9"
+bcrypt = "^4.2.0"
+pyjwt = "^2.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.1"
@@ -38,9 +42,12 @@ flake8-pyproject = "^1.2.3"
 pre-commit = "^3.8.0"
 
 [tool.pytest.ini_options]
-addopts = "--cov=image_vision_ai"
-testpaths = [
-    "tests",
+addopts = "--cov=src"
+testpaths = ["tests"]
+markers = [
+    "unit: mark a test as a unit test",
+    "integration: mark a test as an integration test",
+    "api: mark a test as an api test"
 ]
 
 [tool.mypy]
@@ -59,3 +66,6 @@ no_implicit_reexport = true
 
 [tool.flake8]
 max-line-length = 80
+
+[tool.black]
+line-length = 80

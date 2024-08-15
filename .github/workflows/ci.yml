@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest] # Space issue with ubuntu-latest
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.12']
 
     steps:
@@ -67,5 +67,5 @@ jobs:
 
       # - name: (Optional) Push Docker image
       #   run: |
-      #     docker tag ImageVisionAi:${{ github.sha }} ImageVisionAi/image_vision_ai:${{ github.sha }}
-      #     docker push ImageVisionAi/image_vision_ai:${{ github.sha }}
+      #     docker tag image_vision_ai:${{ github.sha }} image_vision_ai/image_vision_ai:${{ github.sha }}
+      #     docker push image_vision_ai/image_vision_ai:${{ github.sha }}

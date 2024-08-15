@@ -8,8 +8,8 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install
 
-COPY ./src/image_vision_ai /code/image_vision_ai
+COPY ./src /code
 
 EXPOSE 8000
 
-CMD ["uvicorn", "image_vision_ai.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

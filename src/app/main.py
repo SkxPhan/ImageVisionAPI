@@ -1,32 +1,33 @@
-import io
 import os
 import sys
 from contextlib import asynccontextmanager
 
 import torch
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 
-import image_vision_ai.app.schemas as schemas
-from image_vision_ai.models.cnn_model import ImageClassifier
-
-ml_models = {}
+from app.database import init_db
+from app.ml.cnn_model import ImageClassifier
+from app.routers import auth, ml
 
 origins = [
     "http://localhost:3000",
 ]
 
+ml_models = {}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize the db
+    init_db()
+
     # Load the ML model
     current_directory = os.path.dirname(os.path.abspath(__file__))
-    parent_directory = os.path.dirname(current_directory)
     ml_models["image_classifier"] = ImageClassifier(
-        model_path=parent_directory + "/models/mobilenet_v3_large.pth",
-        categories_path=parent_directory + "/models/imagenet_classes.txt",
+        model_path=current_directory + "/ml/mobilenet_v3_large.pth",
+        categories_path=current_directory + "/ml/imagenet_classes.txt",
     )
     yield
     # Clean up the ML models and release the resources
@@ -52,41 +53,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.post(
-    "/api/v1/predict/",
-    status_code=status.HTTP_200_OK,
-    response_model=schemas.InferenceResponse,
-)
-async def predict(file: UploadFile = File(...)):
-    try:
-        image_data = await file.read()
-        image = Image.open(io.BytesIO(image_data))
-
-        width, height = image.size
-        category, prob = ml_models["image_classifier"].predict_category(image)
-        results = schemas.InferenceResult(
-            filename=str(file.filename),
-            width=width,
-            height=height,
-            prediction=category,
-            probability=prob,
-        )
-        return schemas.InferenceResponse(error=False, results=results)
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while classifying the image.",
-        ) from e
+app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
+app.include_router(auth.router, tags=["auth"], prefix="/api/v1/auth")
 
 
-@app.get("/api/v1/healthchecker")
+@app.get("/api/healthchecker")
 def healthchecker():
-    return {"message": "The API is LIVE!!"}
+    return {"message": "The API is LIVE!"}
 
 
-@app.get("/api/v1/about")
+@app.get("/api/about")
 def show_about():
     """
     Get deployment information, for debugging
@@ -113,5 +89,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,
-        log_config="log.ini",
+        log_config="logging.ini",
     )
