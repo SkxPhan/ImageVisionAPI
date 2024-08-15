@@ -124,9 +124,8 @@ class UserCreate(BaseModel):
         default=True,
         json_schema_extra={
             "example": "true",
-            "description": (
-                "Indicates whether the user account is active or not",
-            ),
+            "description": "Indicates whether the user account is active or"
+            " not",
         },
     )
 
@@ -153,9 +152,7 @@ class RegisterResponse(BaseModel):
         title="Message confirmation",
         json_schema_extra={
             "example": "User JohnDoe registered successfully.",
-            "description": (
-                "Confirmation message with the username of the registered "
-                "user.",
-            ),
+            "description": "Confirmation message with the username of the"
+            " registered user.",
         },
     )
