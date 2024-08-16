@@ -29,8 +29,8 @@ def test_predict(
 
     assert response_data["status"] == "Success"
     assert response_data["results"]["filename"] == "test_image.png"
-    assert response_data["results"]["width"] == 100
-    assert response_data["results"]["height"] == 100
+    assert response_data["results"]["width"] == 400
+    assert response_data["results"]["height"] == 400
     assert response_data["results"]["prediction"] == "mock_category"
     assert response_data["results"]["probability"] == 0.99
 

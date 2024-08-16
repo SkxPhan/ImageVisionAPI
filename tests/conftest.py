@@ -115,11 +115,15 @@ def user_payload():
     }
 
 
+@pytest.fixture
+def image():
+    return Image.new("RGB", (400, 400), color="red")
+
+
 @pytest.fixture(scope="function")
-def image_file():
-    img = Image.new("RGB", (100, 100), color="red")
+def image_file(image):
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    image.save(buf, format="PNG")
     buf.seek(0)
     return {"file": ("test_image.png", buf)}
 
