@@ -1,5 +1,5 @@
 # ImageVisionAI
-Real-Time Image Classification Web Application with FastAPI and Gradio
+Image Classification Web Application with FastAPI and Gradio
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![CI](https://github.com/SkxPhan/ImageVisionAI/actions/workflows/ci.yml/badge.svg)
