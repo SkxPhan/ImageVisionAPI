@@ -12,7 +12,7 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
 import app.models as models
-from app.database import TokenBlacklist, get_db
+from app.database import TokenBlacklistORM, get_db
 from app.schemas import schemas
 
 router: APIRouter = APIRouter()
@@ -91,8 +91,8 @@ def get_current_user(
     try:
         # query token
         is_blacklisted = (
-            db.query(TokenBlacklist)
-            .filter(TokenBlacklist.token == token)
+            db.query(TokenBlacklistORM)
+            .filter(TokenBlacklistORM.token == token)
             .first()
             is not None
         )
@@ -125,11 +125,11 @@ async def get_current_active_user(
 
 
 def blacklist_token(token: str, db: Session) -> None:
-    from app.database import TokenBlacklist
+    from app.database import TokenBlacklistORM
 
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     expires_at = datetime.fromtimestamp(payload.get("exp"))
-    token_blacklist = TokenBlacklist(token=token, expires_at=expires_at)
+    token_blacklist = TokenBlacklistORM(token=token, expires_at=expires_at)
     db.add(token_blacklist)
     db.commit()
 
