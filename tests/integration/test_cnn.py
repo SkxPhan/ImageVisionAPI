@@ -6,9 +6,25 @@ from app.ml.cnn_model import ImageClassifier
 
 
 @pytest.mark.integration
+def test_invalid_model_path():
+    model_path = ""
+    categories_path = "tests/data/imagenet_classes.txt"
+    with pytest.raises(ValueError):
+        ImageClassifier(model_path, categories_path)
+
+
+@pytest.mark.integration
+def test_invalid_categories_path():
+    model_path = "tests/data/mobilenet_v3_large.pth"
+    categories_path = ""
+    with pytest.raises(ValueError):
+        ImageClassifier(model_path, categories_path)
+
+
+@pytest.mark.integration
 def test_predict():
     image_path = "tests/data/dog.jpg"
-    model_path = "tests/data/mobilenet_v3_large.pth"  # Use config file
+    model_path = "tests/data/mobilenet_v3_large.pth"
     categories_path = "tests/data/imagenet_classes.txt"
 
     image = Image.open(image_path)

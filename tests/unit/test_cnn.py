@@ -46,3 +46,17 @@ def test_predict_category(mock_image_classifier, image):
     label, prob = prediction
     assert label == "car"
     assert prob == pytest.approx(0.8500, rel=1e-3)
+
+
+@pytest.mark.unit
+def test_fail_predict_category(mock_image_classifier, image, monkeypatch):
+    def mock_predict(*args, **kwargs):
+        return torch.tensor([0.5, 0.5])
+
+    monkeypatch.setattr(ImageClassifier, "predict", mock_predict)
+
+    image_classifier = ImageClassifier()
+    prediction = image_classifier.predict_category(image)
+    label, prob = prediction
+    assert label == "Unknown"
+    assert prob is None

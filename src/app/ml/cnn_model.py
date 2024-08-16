@@ -48,8 +48,6 @@ class ImageClassifier:
             self._model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
             raise ValueError(f"Model file not found: {model_path}")
-        except Exception as e:
-            raise RuntimeError("Error loading model.") from e
 
     def _load_categories(self, categories_path):
         try:
@@ -57,8 +55,6 @@ class ImageClassifier:
                 return [s.strip() for s in f.readlines()]
         except FileNotFoundError:
             raise ValueError(f"Categories file not found: {categories_path}")
-        except Exception as e:
-            raise RuntimeError("Error loading categories.") from e
 
     def predict(self, image):
         input_tensor = self._preprocessor(image).unsqueeze(0).to(self._device)
