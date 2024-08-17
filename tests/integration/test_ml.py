@@ -1,5 +1,7 @@
 import pytest
 
+import app.models as models
+
 
 @pytest.mark.api
 def test_healthchecker(test_client, healthchecker_endpoint):
@@ -17,7 +19,7 @@ def test_show_about(test_client, about_endpoint):
 @pytest.mark.api
 @pytest.mark.integration
 def test_predict(
-    test_client, image_file, mock_image_classifier, predict_endpoint
+    test_client, image_file, mock_image_classifier, predict_endpoint, db_session
 ):
     response = test_client.post(
         predict_endpoint,
@@ -34,4 +36,9 @@ def test_predict(
     assert response_data["results"]["prediction"] == "mock_category"
     assert response_data["results"]["probability"] == 0.99
 
-    # check that the image has been saved into the db
+    image = (
+        db_session.query(models.ImageORM)
+        .filter_by(filename="test_image.png")
+        .first()
+    )
+    assert image is not None  # check that the image has been saved into the db
