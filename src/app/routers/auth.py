@@ -135,7 +135,7 @@ def blacklist_token(token: str, db: Session) -> None:
 
 
 @router.post(
-    "/register/",
+    "/register",
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.RegisterResponse,
 )
