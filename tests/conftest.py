@@ -14,6 +14,13 @@ from app.main import app, ml_models
 
 
 @pytest.fixture(autouse=True)
+def mock_env(monkeypatch):
+    monkeypatch.setenv("SECRET_KEY", "test_secret_key")
+    monkeypatch.setenv("ALGORITHM", "HS256")
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+
+
+@pytest.fixture(autouse=True)
 def mock_init_db(monkeypatch):
     monkeypatch.setattr("app.main.init_db", lambda: None)
 
