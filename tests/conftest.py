@@ -103,7 +103,17 @@ def predict_endpoint():
 
 @pytest.fixture(scope="function")
 def register_endpoint():
-    return "/api/v1/auth/register/"
+    return "/api/v1/auth/register"
+
+
+@pytest.fixture(scope="function")
+def login_endpoint():
+    return "/api/v1/auth/login"
+
+
+@pytest.fixture(scope="function")
+def logout_endpoint():
+    return "/api/v1/auth/logout"
 
 
 @pytest.fixture(scope="function")
