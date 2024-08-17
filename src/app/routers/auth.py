@@ -26,18 +26,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    correct_password: bool = bcrypt.checkpw(
-        plain_password.encode(), hashed_password.encode()
-    )
-    return correct_password
-
-
 def get_password_hash(password: str) -> str:
     hashed_password: str = bcrypt.hashpw(
         password.encode(), bcrypt.gensalt()
     ).decode()
     return hashed_password
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    correct_password: bool = bcrypt.checkpw(
+        plain_password.encode(), hashed_password.encode()
+    )
+    return correct_password
 
 
 def get_user(username: str | None, db: Session) -> models.UserORM | None:
@@ -50,7 +50,7 @@ def get_user(username: str | None, db: Session) -> models.UserORM | None:
         .first()
     )
 
-    return user if user else None
+    return user or None
 
 
 def authenticate_user(
