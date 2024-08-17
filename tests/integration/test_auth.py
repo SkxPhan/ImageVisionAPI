@@ -2,16 +2,10 @@ from datetime import timedelta
 
 import bcrypt
 import pytest
-from fastapi import HTTPException
 
 import app.models as models
 from app.database import TokenBlacklistORM
-from app.routers.auth import (
-    create_access_token,
-    get_current_user,
-    get_password_hash,
-    get_user,
-)
+from app.routers.auth import create_access_token, get_password_hash, get_user
 
 
 @pytest.mark.integration
@@ -136,18 +130,22 @@ def test_logout(
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_get_current_user(
+def test_read_user_me(
     test_client,
     user_payload,
     register_endpoint,
     login_endpoint,
     logout_endpoint,
+    read_user_me_endpoint,
     db_session,
 ):
+    # Register
     response = test_client.post(
         register_endpoint,
         json=user_payload,
     )
+
+    # Login and get access token
     response = test_client.post(
         login_endpoint,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -159,28 +157,46 @@ def test_get_current_user(
     )
     # Test Case 1: Valid token
     access_token = response.json()["access_token"]
-    user = get_current_user(access_token, db_session)
-    assert user is not None
-    assert user.username == user_payload["username"]
-    assert user.email == user_payload["email"]
+    response = test_client.get(
+        read_user_me_endpoint,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+
+    response_data = response.json()
+    assert response_data["username"] == user_payload["username"]
+    assert response_data["email"] == user_payload["email"]
+    assert response_data["is_active"] is True
 
     # Test Case 2: Other user's token
     bad_access_token = create_access_token(data={"sub": "unauthorized_user"})
-    with pytest.raises(HTTPException):
-        user = get_current_user(bad_access_token, db_session)
+    response = test_client.get(
+        read_user_me_endpoint,
+        headers={"Authorization": f"Bearer {bad_access_token}"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Could not validate credentials"
 
     # Test Case 3: Expired token
-    expired_token = create_access_token(
+    new_token = create_access_token(
         data={"sub": user_payload["username"]},
         expires_delta=timedelta(minutes=-1),
     )
-    with pytest.raises(HTTPException):
-        user = get_current_user(expired_token, db_session)
+    response = test_client.get(
+        read_user_me_endpoint,
+        headers={"Authorization": f"Bearer {new_token}"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token has expired"
 
     # Test Case 4: Blacklisted token
     response = test_client.post(
         logout_endpoint,
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    with pytest.raises(HTTPException):
-        user = get_current_user(access_token, db_session)
+    response = test_client.get(
+        read_user_me_endpoint,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token has been blacklisted"

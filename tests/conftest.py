@@ -117,6 +117,11 @@ def logout_endpoint():
 
 
 @pytest.fixture(scope="function")
+def read_user_me_endpoint():
+    return "/api/v1/auth/users/me"
+
+
+@pytest.fixture(scope="function")
 def user_payload():
     return {
         "username": "JohnDoe",

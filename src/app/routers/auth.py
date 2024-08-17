@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.orm import Session
 
 import app.models as models
@@ -89,7 +89,6 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # query token
         is_blacklisted = (
             db.query(TokenBlacklistORM)
             .filter(TokenBlacklistORM.token == token)
@@ -97,15 +96,22 @@ def get_current_user(
             is not None
         )
         if is_blacklisted:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been blacklisted",
+            )
 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
+        if not username:
             raise credentials_exception
 
         token_data = schemas.TokenData(username=username)
-
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        )
     except InvalidTokenError:
         raise credentials_exception
 
@@ -204,7 +210,7 @@ async def logout(
 
 
 @router.get("/users/me", response_model=schemas.User)
-async def read_users_me(
+async def read_user_me(
     current_user: Annotated[schemas.User, Depends(get_current_active_user)]
 ):
     return current_user
