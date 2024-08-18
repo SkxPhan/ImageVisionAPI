@@ -88,12 +88,12 @@ def test_client(db_session):
 
 @pytest.fixture(scope="function")
 def healthchecker_endpoint():
-    return "/api/healthchecker"
+    return "/"
 
 
 @pytest.fixture(scope="function")
 def about_endpoint():
-    return "/api/about"
+    return "/about"
 
 
 @pytest.fixture(scope="function")

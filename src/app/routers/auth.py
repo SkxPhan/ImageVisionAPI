@@ -209,8 +209,10 @@ async def logout(
         )
 
 
-@router.get("/users/me", response_model=schemas.User)
+@router.get("/users/me", response_model=schemas.UserResponse)
 async def read_user_me(
-    current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+    current_user: Annotated[
+        schemas.UserResponse, Depends(get_current_active_user)
+    ]
 ):
     return current_user
