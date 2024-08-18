@@ -89,13 +89,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        is_blacklisted = (
-            db.query(TokenBlacklistORM)
-            .filter(TokenBlacklistORM.token == token)
-            .first()
-            is not None
-        )
-        if is_blacklisted:
+        if is_blacklisted(token, db):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has been blacklisted",
@@ -138,6 +132,15 @@ def blacklist_token(token: str, db: Session) -> None:
     token_blacklist = TokenBlacklistORM(token=token, expires_at=expires_at)
     db.add(token_blacklist)
     db.commit()
+
+
+def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
+    return (
+        db.query(TokenBlacklistORM)
+        .filter(TokenBlacklistORM.token == token)
+        .first()
+        is not None
+    )
 
 
 @router.post(
@@ -206,15 +209,19 @@ async def logout(
     access_token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
 ) -> Response:
+    unauthorized_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
+        if is_blacklisted(access_token, db):
+            raise unauthorized_exception
         blacklist_token(token=access_token, db=db)
         return {"message": "Logged out successfully"}
+
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        unauthorized_exception
 
 
 @router.get(
