@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
 
 
 class Status(str, Enum):
@@ -67,26 +67,17 @@ class UserCreate(BaseModel):
         description="Email address",
         examples=["example@example.com"],
     )
-    password: str = Field(
-        description="Password", examples=["Password"], exclude=True
+    password: SecretStr = Field(
+        description="Password",
+        examples=["Password"],
+        min_length=8,
+        exclude=True,
     )
     is_active: bool = Field(
         default=True,
         description="Indicates if the user account is active",
         examples=[True],
     )
-
-    @field_validator("email")
-    def email_format(cls, v):
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address format.")
-        return v
-
-    @field_validator("password")
-    def password_length(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long.")
-        return v
 
 
 class UserResponse(UserCreate):
