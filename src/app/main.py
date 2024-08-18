@@ -90,7 +90,12 @@ app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
 app.include_router(auth.router, tags=["Auth"], prefix="/api/v1/auth")
 
 
-@app.get("/", tags=["Info"])
+@app.get(
+    "/",
+    tags=["Info"],
+    summary="API Live Checker",
+    response_description="Confirmation",
+)
 def healthchecker():
     """
     Simple endpoint to check that the API is live.
@@ -98,8 +103,12 @@ def healthchecker():
     return {"message": "The API is LIVE!"}
 
 
-@app.get("/about", tags=["Info"])
-def show_about():
+@app.get(
+    "/about",
+    tags=["Info"],
+    response_description="System information",
+)
+def show_system_info():
     """
     Get information about the environment and PyTorch version, for debugging.
     """

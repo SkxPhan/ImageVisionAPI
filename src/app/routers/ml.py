@@ -15,9 +15,11 @@ router: APIRouter = APIRouter()
 @router.post(
     "/predict/",
     status_code=status.HTTP_200_OK,
-    response_model=schemas.InferenceResponse,
+    response_description="Classify an image using CNN",
 )
-async def predict(file: UploadFile, db: Annotated[Session, Depends(get_db)]):
+async def predict(
+    file: UploadFile, db: Annotated[Session, Depends(get_db)]
+) -> schemas.InferenceResponse:
     from app.main import ml_models
 
     try:

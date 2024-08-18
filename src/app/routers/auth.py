@@ -143,13 +143,16 @@ def blacklist_token(token: str, db: Session) -> None:
 @router.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
-    response_model=schemas.RegisterResponse,
+    response_description="Registration confirmation",
 )
-async def register_user(
+async def register_new_user(
     user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]
-):
+) -> schemas.RegisterResponse:
+    """
+    Register a new user.
+    """
     try:
-        hashed_password = get_password_hash(user.password)
+        hashed_password = get_password_hash(user.password.get_secret_value())
         new_user = models.UserORM(
             username=user.username,
             email=user.email,
@@ -171,8 +174,11 @@ async def register_user(
         )
 
 
-@router.post("/login", response_model=schemas.Token)
-async def login_for_access_token(
+@router.post(
+    "/login",
+    response_description="Access token",
+)
+async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Token:
@@ -192,12 +198,14 @@ async def login_for_access_token(
     )  # nosec
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    response_description="Logout confirmation",
+)
 async def logout(
-    response: Response,
     access_token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
-) -> dict[str, str]:
+) -> Response:
     try:
         blacklist_token(token=access_token, db=db)
         return {"message": "Logged out successfully"}
@@ -209,10 +217,13 @@ async def logout(
         )
 
 
-@router.get("/users/me", response_model=schemas.UserResponse)
-async def read_user_me(
+@router.get(
+    "/users/me",
+    response_description="Information of the current user",
+)
+async def get_user_info(
     current_user: Annotated[
-        schemas.UserResponse, Depends(get_current_active_user)
+        schemas.UserCreate, Depends(get_current_active_user)
     ]
-):
+) -> schemas.UserResponse:
     return current_user

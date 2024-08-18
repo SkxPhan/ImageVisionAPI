@@ -54,9 +54,9 @@ class RegisterResponse(BaseModel):
     )
 
 
-class UserCreate(BaseModel):
+class UserResponse(BaseModel):
     """
-    Input schema for creating a new user.
+    Response schema when requesting an user.
     """
 
     username: str = Field(
@@ -67,12 +67,6 @@ class UserCreate(BaseModel):
         description="Email address",
         examples=["example@example.com"],
     )
-    password: SecretStr = Field(
-        description="Password",
-        examples=["Password"],
-        min_length=8,
-        exclude=True,
-    )
     is_active: bool = Field(
         default=True,
         description="Indicates if the user account is active",
@@ -80,12 +74,17 @@ class UserCreate(BaseModel):
     )
 
 
-class UserResponse(UserCreate):
+class UserCreate(UserResponse):
     """
-    Response schema when requesting an user.
+    Input schema for creating a new user.
     """
 
-    pass
+    password: SecretStr = Field(
+        description="Password",
+        examples=["Password"],
+        min_length=8,
+        exclude=True,
+    )
 
 
 class Token(BaseModel):
