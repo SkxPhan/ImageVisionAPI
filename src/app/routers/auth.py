@@ -124,6 +124,18 @@ async def get_current_active_user(
     return current_user
 
 
+def user_already_registered(user: models.UserORM, db: Session) -> bool:
+    return (
+        db.query(models.UserORM)
+        .filter(
+            models.UserORM.username == user.username
+            or models.UserORM.email == user.email
+        )
+        .first()
+        is not None
+    )
+
+
 def blacklist_token(token: str, db: Session) -> None:
     from app.database import TokenBlacklistORM
 
@@ -154,13 +166,21 @@ async def register_new_user(
     """
     Register a new user.
     """
-    try:
-        hashed_password = get_password_hash(user.password.get_secret_value())
-        new_user = models.UserORM(
-            username=user.username,
-            email=user.email,
-            hashed_password=hashed_password,
+
+    hashed_password = get_password_hash(user.password.get_secret_value())
+    new_user = models.UserORM(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password,
+    )
+
+    if user_already_registered(new_user, db):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Client already registered.",
         )
+
+    try:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
