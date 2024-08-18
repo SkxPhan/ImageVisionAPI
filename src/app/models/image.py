@@ -7,7 +7,7 @@ from app.database import Base
 class ImageORM(Base):
     __tablename__ = "image"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     filename = Column(String(255), nullable=False)
     image_data = Column(LargeBinary, nullable=False)
     classification = Column(String(255), nullable=True)

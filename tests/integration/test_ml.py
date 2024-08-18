@@ -41,4 +41,5 @@ def test_predict(
         .filter_by(filename="test_image.png")
         .first()
     )
-    assert image is not None  # check that the image has been saved into the db
+    assert image is not None
+    assert image.classification == "mock_category"

@@ -6,7 +6,8 @@ from app.database import Base
 
 class UserORM(Base):
     __tablename__ = "user"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
