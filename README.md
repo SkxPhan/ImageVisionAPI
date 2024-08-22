@@ -4,6 +4,8 @@ Image Classification Web Application with FastAPI and Gradio
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![CI](https://github.com/SkxPhan/ImageVisionAI/actions/workflows/ci.yml/badge.svg)
 
+<!-- Add badge for coverage, python version and OS where the build succed -->
+
 This project demonstrates a complete pipeline for a real-time image classification system using Convolutional Neural Networks (CNNs), FastAPI, Gradio, and Docker. The project includes user authentication, image upload, classification, and history retrieval, with a focus on continuous integration and deployment.
 
 ## Table of Contents

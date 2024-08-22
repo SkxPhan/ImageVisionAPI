@@ -18,15 +18,13 @@ SQLALCHEMY_DATABASE_URL = (
     f"@{POSTGRES_HOST}/{POSTGRES_DB}"
 )
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base: Any = declarative_base()
 
 
-class TokenBlacklist(Base):
+class TokenBlacklistORM(Base):
     __tablename__ = "token_blacklist"
 
     id: Mapped[int] = mapped_column(

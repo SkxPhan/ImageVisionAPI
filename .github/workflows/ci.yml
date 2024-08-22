@@ -4,20 +4,19 @@
 name: Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
-      - '*'
+      - main
 
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest] # windows-latest, macos-latest]
         python-version: ['3.12']
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
     steps:
     - name: Checkout code

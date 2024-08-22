@@ -12,7 +12,8 @@ class Preprocessor(torch.nn.Module):
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    mean=[0.485, 0.456, 0.406],  # Use config file
+                    std=[0.229, 0.224, 0.225],  # Use config file
                 ),
             ]
         )
@@ -24,7 +25,7 @@ class Preprocessor(torch.nn.Module):
 class ImageClassifier:
     def __init__(
         self,
-        model_path="mobilenet_v3_large.pth",
+        model_path="mobilenet_v3_large.pth",  # Use config file
         categories_path="imagenet_classes.txt",
         device=None,
     ):
@@ -47,8 +48,6 @@ class ImageClassifier:
             self._model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
             raise ValueError(f"Model file not found: {model_path}")
-        except Exception as e:
-            raise RuntimeError("Error loading model.") from e
 
     def _load_categories(self, categories_path):
         try:
@@ -56,8 +55,6 @@ class ImageClassifier:
                 return [s.strip() for s in f.readlines()]
         except FileNotFoundError:
             raise ValueError(f"Categories file not found: {categories_path}")
-        except Exception as e:
-            raise RuntimeError("Error loading categories.") from e
 
     def predict(self, image):
         input_tensor = self._preprocessor(image).unsqueeze(0).to(self._device)
@@ -68,16 +65,16 @@ class ImageClassifier:
         probabilities = torch.nn.functional.softmax(output[0], dim=0)
         return probabilities
 
-    def top_k_predictions(self, probabilities, k=5):
-        top_prob, top_catid = torch.topk(probabilities, k)
+    def top_k_predictions(self, image, k=5):
+        probabilities = self.predict(image)
+        top_prob, top_cat_id = torch.topk(probabilities, k)
         return [
-            (self._categories[catid], prob.item())
-            for prob, catid in zip(top_prob, top_catid)
+            (self._categories[cat_id], prob.item())
+            for prob, cat_id in zip(top_prob, top_cat_id)
         ]
 
     def predict_category(self, image):
-        probabilities = self.predict(image)
-        top_2_predictions = self.top_k_predictions(probabilities, 2)
+        top_2_predictions = self.top_k_predictions(image, 2)
         threshold_mul = 2
         if top_2_predictions[0][1] > top_2_predictions[1][1] * threshold_mul:
             return (top_2_predictions[0][0], top_2_predictions[0][1])
@@ -85,7 +82,7 @@ class ImageClassifier:
             return ("Unknown", None)
 
 
-def main():
+def main():  # pragma: no cover
     image_file = "dog.jpg"
     model_path = "mobilenet_v3_large.pth"
 
@@ -108,5 +105,5 @@ def main():
     print(f"This is a {category} (probability: {prob:.4f})")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

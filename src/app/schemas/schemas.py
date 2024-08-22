@@ -1,182 +1,121 @@
-# from typing import Any, Dict, List, Optional
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
 
 
 class Status(str, Enum):
+    """
+    Status of the operation.
+    """
+
     Success = "Success"
     Error = "Error"
 
 
 class InferenceResult(BaseModel):
     """
-    Inference result from the model
+    Inference result schema from the model.
     """
 
-    filename: str = Field(
-        ...,
-        title="Name of the file",
-        json_schema_extra={
-            "example": "dog.png",
-            "description": "Name of the file",
-        },
-    )
-    width: int = Field(
-        ...,
-        title="Image width",
-        json_schema_extra={
-            "example": 640,
-            "description": "Image width",
-        },
-    )
-    height: int = Field(
-        ...,
-        title="Image height",
-        json_schema_extra={
-            "example": 480,
-            "description": "Image height",
-        },
-    )
-    prediction: str = Field(
-        ...,
-        title="Image category",
-        json_schema_extra={
-            "example": "Dog",
-            "description": "Image category",
-        },
-    )
-    probability: float = Field(
-        ...,
-        title="Image category probability",
-        json_schema_extra={
-            "example": "0.9735",
-            "description": "Image category probability",
-        },
+    filename: str = Field(description="Filename", examples=["dog.png"])
+    width: int = Field(description="Image width", examples=[640], gt=0.0)
+    height: int = Field(description="Image height", examples=[480], gt=0.0)
+    prediction: str = Field(description="Image category", examples=["Dog"])
+    probability: float | None = Field(
+        description="Image category probability",
+        examples=[0.9735],
+        ge=0.0,
+        le=1.0,
     )
 
     @field_validator("probability")
     def probability_format(cls, v):
-        ...
         return round(v, 5)
 
 
 class InferenceResponse(BaseModel):
     """
-    Output response for model inference
+    Response shema when classifying an image.
     """
 
-    status: Status = Field(
-        ...,
-        description="The status of the operation",
-    )
+    status: Status
     results: InferenceResult
 
 
-class ErrorResponse(BaseModel):
+class RegisterResponse(BaseModel):
     """
-    Error response for the API
+    Response schema when a user registers.
     """
 
-    status: Status = Field(
-        default=Status.Error,
-        description="The status of the operation",
-    )
+    status: Status
     message: str = Field(
-        ...,
-        title="Error message",
-        json_schema_extra={
-            "example": "An error occurred",
-            "description": "Error message",
-        },
-    )
-    traceback: str = Field(
-        None,
-        title="Detailed traceback of the error",
-        json_schema_extra={
-            "example": "Traceback details here",
-            "description": "Detailed traceback of the error",
-        },
+        description="Registration confirmation",
+        examples=["User JohnDoe registered successfully."],
     )
 
 
-class UserCreate(BaseModel):
+class UserResponse(BaseModel):
+    """
+    Response schema when requesting an user.
+    """
+
     username: str = Field(
-        ...,
-        title="Username",
-        json_schema_extra={
-            "example": "JohnDoe",
-            "description": "Username",
-        },
+        description="Username",
+        examples=["JohnDoe"],
     )
     email: EmailStr = Field(
-        ...,
-        title="Email address",
-        json_schema_extra={
-            "example": "example@example.com",
-            "description": "Email address",
-        },
-    )
-    password: str = Field(
-        ...,
-        title="Password",
-        json_schema_extra={
-            "example": "Password",
-            "description": "Password of minimum 8 characters.",
-        },
+        description="Email address",
+        examples=["example@example.com"],
     )
     is_active: bool = Field(
         default=True,
-        json_schema_extra={
-            "example": "true",
-            "description": "Indicates whether the user account is active or"
-            " not",
-        },
-    )
-
-    @field_validator("email")
-    def email_format(cls, v):
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address format")
-        return v
-
-    @field_validator("password")
-    def password_length(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        return v
-
-
-class RegisterResponse(BaseModel):
-    status: Status = Field(
-        ...,
-        description="The status of the operation",
-    )
-    message: str = Field(
-        ...,
-        title="Message confirmation",
-        json_schema_extra={
-            "example": "User JohnDoe registered successfully.",
-            "description": "Confirmation message with the username of the"
-            " registered user.",
-        },
+        description="Indicates if the user account is active",
+        examples=[True],
     )
 
 
-class User(BaseModel):
-    username: str
-    email: str
-    is_active: bool
+class UserCreate(UserResponse):
+    """
+    Input schema for creating a new user.
+    """
 
-
-class UserInDB(User):
-    hashed_password: str
+    password: SecretStr = Field(
+        description="Password",
+        examples=["Password"],
+        min_length=8,
+        exclude=True,
+    )
 
 
 class Token(BaseModel):
+    """
+    Response schema when requesting an token.
+    """
+
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
+    """
+    Token schema.
+    """
+
     username: str | None = None
+
+
+class ErrorResponse(BaseModel):
+    """
+    Error response schema.
+    """
+
+    status: Status = Status.Error
+    message: str = Field(
+        description="Error message",
+        examples=["An error occurred"],
+    )
+    traceback: str = Field(
+        None,
+        description="Detailed traceback of the error",
+        examples=["Traceback details here"],
+    )

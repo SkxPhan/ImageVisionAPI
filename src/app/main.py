@@ -34,15 +34,48 @@ async def lifespan(app: FastAPI):
     ml_models.clear()
 
 
+description = """
+ImageVisionAPI helps you do awesome stuff. 🚀
+
+## Machine Learning
+
+You can **classify** images.
+
+## Users
+
+You will be able to:
+
+* **Create users**.
+* **Classify images**.
+* **Vizualize history of previous classifications** (_not implemented_).
+"""
+
+tags_metadata = [
+    {
+        "name": "Auth",
+        "description": "Registration, login and logout",
+    },
+    {
+        "name": "ML",
+        "description": "Image classification using **AI**.",
+    },
+    {
+        "name": "Info",
+        "description": "Miscellaneous information.",
+    },
+]
+
 # Initialize API Server
 app = FastAPI(
-    title="ImageVisionAI",
-    description="Real-Time Image Classification Web Application",
-    version="0.0.1",
+    title="Image Classification Web API",
+    description=description,
+    summary="Web API for image classification",
+    version="0.1.0",
     terms_of_service=None,
-    contact=None,
+    contact={"name": "SkxPhan", "url": "https://github.com/SkxPhan"},
     license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
     lifespan=lifespan,
+    openapi_tags=tags_metadata,
 )
 
 app.add_middleware(
@@ -54,18 +87,30 @@ app.add_middleware(
 )
 
 app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
-app.include_router(auth.router, tags=["auth"], prefix="/api/v1/auth")
+app.include_router(auth.router, tags=["Auth"], prefix="/api/v1/auth")
 
 
-@app.get("/api/healthchecker")
+@app.get(
+    "/",
+    tags=["Info"],
+    summary="API Live Checker",
+    response_description="Confirmation",
+)
 def healthchecker():
+    """
+    Simple endpoint to check that the API is live.
+    """
     return {"message": "The API is LIVE!"}
 
 
-@app.get("/api/about")
-def show_about():
+@app.get(
+    "/about",
+    tags=["Info"],
+    response_description="System information",
+)
+def show_system_info():
     """
-    Get deployment information, for debugging
+    Get information about the environment and PyTorch version, for debugging.
     """
 
     def bash(command):
