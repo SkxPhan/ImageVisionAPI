@@ -5,35 +5,23 @@ import pytest
 
 import app.models as models
 from app.database import TokenBlacklistORM
-from app.routers.auth import create_access_token, get_password_hash, get_user
+from app.routers.auth import create_access_token, get_user
 
 
 @pytest.mark.integration
-def test_get_user(user_payload, db_session):
-    # inject user in db
-    hashed_password = get_password_hash(user_payload["password"])
-    new_user = models.UserORM(
-        username=user_payload["username"],
-        email=user_payload["email"],
-        hashed_password=hashed_password,
-    )
-    db_session.add(new_user)
-    db_session.commit()
-
-    # retrieve the user
+def test_get_user(user_payload, db_session, user_db):
     user = get_user(user_payload["username"], db_session)
     assert user
     assert user.username == user_payload["username"]
     assert user.email == user_payload["email"]
 
-    # retrieve inexistent user
     user = get_user("inexistent_user", db_session)
     assert user is None
 
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_register(test_client, user_payload, register_endpoint, db_session):
+def test_register(test_client, register_endpoint, user_payload, db_session):
     response = test_client.post(
         register_endpoint,
         json=user_payload,
@@ -65,11 +53,7 @@ def test_register(test_client, user_payload, register_endpoint, db_session):
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_login(test_client, user_payload, register_endpoint, login_endpoint):
-    response = test_client.post(
-        register_endpoint,
-        json=user_payload,
-    )
+def test_login(test_client, login_endpoint, user_payload, user_db):
     response = test_client.post(
         login_endpoint,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -91,16 +75,12 @@ def test_login(test_client, user_payload, register_endpoint, login_endpoint):
 @pytest.mark.integration
 def test_logout(
     test_client,
-    user_payload,
-    register_endpoint,
     login_endpoint,
     logout_endpoint,
+    user_payload,
     db_session,
+    user_db,
 ):
-    response = test_client.post(
-        register_endpoint,
-        json=user_payload,
-    )
     response = test_client.post(
         login_endpoint,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -132,19 +112,12 @@ def test_logout(
 @pytest.mark.integration
 def test_read_user_me(
     test_client,
-    user_payload,
-    register_endpoint,
     login_endpoint,
-    logout_endpoint,
     read_user_me_endpoint,
-    db_session,
+    logout_endpoint,
+    user_payload,
+    user_db,
 ):
-    # Register
-    response = test_client.post(
-        register_endpoint,
-        json=user_payload,
-    )
-
     # Login and get access token
     response = test_client.post(
         login_endpoint,
@@ -189,7 +162,7 @@ def test_read_user_me(
     assert response.status_code == 401
     assert response.json()["detail"] == "Token has expired"
 
-    # Test Case 4: Blacklisted token
+    # Test Case 4: Blacklisting token by logging out
     response = test_client.post(
         logout_endpoint,
         headers={"Authorization": f"Bearer {access_token}"},

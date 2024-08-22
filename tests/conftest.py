@@ -1,4 +1,3 @@
-import io
 import pathlib
 
 import pytest
@@ -9,8 +8,10 @@ from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import app.models as models
 from app.database import Base, get_db
-from app.main import app, ml_models
+from app.main import app
+from app.routers.auth import get_password_hash, get_user
 
 
 @pytest.fixture(autouse=True)
@@ -53,7 +54,7 @@ def db_url(request):
 def db_session(db_url):
     """Create a new database session with a rollback at the end of the test."""
     # Create a SQLAlchemy engine
-    engine = create_engine(db_url, poolclass=StaticPool)
+    engine = create_engine(db_url, poolclass=StaticPool, echo=True)
 
     # Create a sessionmaker to manage sessions
     TestingSessionLocal = sessionmaker(
@@ -86,42 +87,13 @@ def test_client(db_session):
         yield test_client
 
 
-@pytest.fixture(scope="function")
-def healthchecker_endpoint():
-    return "/"
+# --------------------------------- Fake Data ---------------------------------
+@pytest.fixture
+def image():
+    return Image.new("RGB", (400, 400), color="red")
 
 
-@pytest.fixture(scope="function")
-def about_endpoint():
-    return "/about"
-
-
-@pytest.fixture(scope="function")
-def predict_endpoint():
-    return "/api/v1/ml/predict/"
-
-
-@pytest.fixture(scope="function")
-def register_endpoint():
-    return "/api/v1/auth/register"
-
-
-@pytest.fixture(scope="function")
-def login_endpoint():
-    return "/api/v1/auth/login"
-
-
-@pytest.fixture(scope="function")
-def logout_endpoint():
-    return "/api/v1/auth/logout"
-
-
-@pytest.fixture(scope="function")
-def read_user_me_endpoint():
-    return "/api/v1/auth/users/me"
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture
 def user_payload():
     return {
         "username": "JohnDoe",
@@ -131,32 +103,49 @@ def user_payload():
 
 
 @pytest.fixture
-def image():
-    return Image.new("RGB", (400, 400), color="red")
+def user_db(user_payload, db_session):
+    hashed_password = get_password_hash(user_payload["password"])
+    new_user = models.UserORM(
+        username=user_payload["username"],
+        email=user_payload["email"],
+        hashed_password=hashed_password,
+    )
+    db_session.add(new_user)
+    db_session.commit()
+    return get_user(user_payload["username"], db_session)
 
 
-@pytest.fixture(scope="function")
-def image_file(image):
-    buf = io.BytesIO()
-    image.save(buf, format="PNG")
-    buf.seek(0)
-    return {"file": ("test_image.png", buf)}
+# ------------------------------- API Endpoints -------------------------------
+@pytest.fixture
+def healthchecker_endpoint():
+    return "/"
 
 
-@pytest.fixture(scope="function")
-def mock_image_classifier(monkeypatch):
-    class MockImageClassifier:
-        def predict_category(self, image):
-            return "mock_category", 0.99
+@pytest.fixture
+def about_endpoint():
+    return "/about"
 
-    original_image_classifier = ml_models.get("image_classifier")
-    monkeypatch.setitem(ml_models, "image_classifier", MockImageClassifier())
 
-    yield
+@pytest.fixture
+def predict_endpoint():
+    return "/api/v1/ml/predict/"
 
-    if original_image_classifier:
-        monkeypatch.setitem(
-            ml_models, "image_classifier", original_image_classifier
-        )
-    else:
-        ml_models.pop("image_classifier", None)
+
+@pytest.fixture
+def register_endpoint():
+    return "/api/v1/auth/register"
+
+
+@pytest.fixture
+def login_endpoint():
+    return "/api/v1/auth/login"
+
+
+@pytest.fixture
+def logout_endpoint():
+    return "/api/v1/auth/logout"
+
+
+@pytest.fixture
+def read_user_me_endpoint():
+    return "/api/v1/auth/users/me"
