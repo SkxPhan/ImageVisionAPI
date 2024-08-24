@@ -13,7 +13,7 @@ router: APIRouter = APIRouter()
 
 
 @router.post(
-    "/predict/",
+    "/predict",
     status_code=status.HTTP_200_OK,
     response_description="Classify an image using CNN",
 )
