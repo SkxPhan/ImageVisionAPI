@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 import pytest
@@ -11,12 +12,7 @@ from sqlalchemy.pool import StaticPool
 import app.models as models
 from app.database import Base, get_db
 from app.main import app
-from app.routers.auth import get_password_hash, get_user
-
-
-@pytest.fixture(autouse=True)
-def mock_init_db(monkeypatch):
-    monkeypatch.setattr("app.main.init_db", lambda: None)
+from app.routers.auth import create_access_token, get_password_hash, get_user
 
 
 def pytest_addoption(parser):
@@ -50,10 +46,28 @@ def db_url(request):
     return request.config.getoption("--dburl")
 
 
+@pytest.fixture(scope="session", autouse=True)
+def setup_and_teardown_db(db_url):
+    """Create and tear down the database."""
+    db_path = pathlib.Path(db_url.split("///")[-1])
+    if db_path.exists():
+        os.remove(db_path)
+
+    engine = create_engine(db_url, poolclass=StaticPool, echo=True)
+    Base.metadata.create_all(bind=engine)
+
+    yield db_url
+
+    Base.metadata.drop_all(bind=engine)
+    if db_path.exists():
+        os.remove(db_path)
+
+
 @pytest.fixture(scope="function")
-def db_session(db_url):
+def db_session(setup_and_teardown_db):
     """Create a new database session with a rollback at the end of the test."""
     # Create a SQLAlchemy engine
+    db_url = setup_and_teardown_db
     engine = create_engine(db_url, poolclass=StaticPool, echo=True)
 
     # Create a sessionmaker to manage sessions
@@ -66,7 +80,9 @@ def db_session(db_url):
     connection = engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
+
     yield session
+
     session.close()
     transaction.rollback()
     connection.close()
@@ -85,6 +101,11 @@ def test_client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture(autouse=True)
+def mock_init_db(monkeypatch):
+    monkeypatch.setattr("app.main.init_db", lambda: None)
 
 
 # --------------------------------- Fake Data ---------------------------------
@@ -113,6 +134,11 @@ def user_db(user_payload, db_session):
     db_session.add(new_user)
     db_session.commit()
     return get_user(user_payload["username"], db_session)
+
+
+@pytest.fixture
+def access_token(user_payload, user_db):
+    return create_access_token(data={"sub": user_payload["username"]})
 
 
 # ------------------------------- API Endpoints -------------------------------

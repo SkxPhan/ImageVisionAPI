@@ -26,10 +26,9 @@ def test_register(test_client, register_endpoint, user_payload, db_session):
         register_endpoint,
         json=user_payload,
     )
-
     assert response.status_code == 201
-    response_data = response.json()
 
+    response_data = response.json()
     assert response_data["status"] == "Success"
     assert (
         response_data["message"]
@@ -63,8 +62,8 @@ def test_login(test_client, login_endpoint, user_payload, user_db):
             "password": user_payload["password"],
         },
     )
-    response_data = response.json()
 
+    response_data = response.json()
     assert response.status_code == 200
     assert response_data["token_type"] == "bearer"
     assert "access_token" in response_data
@@ -75,22 +74,10 @@ def test_login(test_client, login_endpoint, user_payload, user_db):
 @pytest.mark.integration
 def test_logout(
     test_client,
-    login_endpoint,
     logout_endpoint,
-    user_payload,
     db_session,
-    user_db,
+    access_token,
 ):
-    response = test_client.post(
-        login_endpoint,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data={
-            "grant_type": "password",
-            "username": user_payload["username"],
-            "password": user_payload["password"],
-        },
-    )
-    access_token = response.json()["access_token"]
     response = test_client.post(
         logout_endpoint,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -112,24 +99,13 @@ def test_logout(
 @pytest.mark.integration
 def test_read_user_me(
     test_client,
-    login_endpoint,
     read_user_me_endpoint,
     logout_endpoint,
     user_payload,
-    user_db,
+    access_token,
 ):
-    # Login and get access token
-    response = test_client.post(
-        login_endpoint,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data={
-            "grant_type": "password",
-            "username": user_payload["username"],
-            "password": user_payload["password"],
-        },
-    )
+
     # Test Case 1: Valid token
-    access_token = response.json()["access_token"]
     response = test_client.get(
         read_user_me_endpoint,
         headers={"Authorization": f"Bearer {access_token}"},
