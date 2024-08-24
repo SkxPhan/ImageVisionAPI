@@ -7,18 +7,23 @@ from sqlalchemy.orm import Session
 
 import app.models as models
 from app.database import get_db
+from app.routers.auth import get_current_active_user
 from app.schemas import schemas
 
 router: APIRouter = APIRouter()
 
 
 @router.post(
-    "/predict/",
+    "/predict",
     status_code=status.HTTP_200_OK,
     response_description="Classify an image using CNN",
 )
 async def predict(
-    file: UploadFile, db: Annotated[Session, Depends(get_db)]
+    file: UploadFile,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[
+        schemas.UserCreate, Depends(get_current_active_user)
+    ],
 ) -> schemas.InferenceResponse:
     from app.main import ml_models
 
@@ -35,28 +40,29 @@ async def predict(
             prediction=category,
             probability=prob,
         )
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while classifying the image.",
-        )
+        ) from e
 
     try:
         new_image = models.ImageORM(
             filename=file.filename,
             image_data=image_data,
-            classification=category,
+            label=category,
             probability=prob,
+            user_id=current_user.id,
         )
         db.add(new_image)
         db.commit()
         db.refresh(new_image)
-    except Exception:
+    except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while saving the image.",
-        )
+        ) from e
 
     return schemas.InferenceResponse(
         status=schemas.Status.Success, results=results

@@ -39,16 +39,30 @@ def test_show_about(test_client, about_endpoint):
 @pytest.mark.api
 @pytest.mark.integration
 def test_predict(
-    test_client, predict_endpoint, image_file, db_session, mock_image_classifier
+    test_client,
+    predict_endpoint,
+    image_file,
+    db_session,
+    access_token,
+    mock_image_classifier,
 ):
+    # Test Case 1: Without authentication
     response = test_client.post(
         predict_endpoint,
         files=image_file,
     )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"
 
+    # Test Case 2: With authentication
+    response = test_client.post(
+        predict_endpoint,
+        files=image_file,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
     assert response.status_code == 200
-    response_data = response.json()
 
+    response_data = response.json()
     assert response_data["status"] == "Success"
     assert response_data["results"]["filename"] == "test_image.png"
     assert response_data["results"]["width"] == 400
@@ -62,4 +76,5 @@ def test_predict(
         .first()
     )
     assert image is not None
-    assert image.classification == "mock_category"
+    assert image.label == "mock_category"
+    assert image.user_id == 1

@@ -5,10 +5,11 @@ from typing import Annotated, Any, Literal
 import bcrypt
 import jwt
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 import app.models as models
@@ -88,13 +89,14 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        if is_blacklisted(token, db):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been blacklisted",
-            )
 
+    if is_blacklisted(token, db):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been blacklisted, please log in again.",
+        )
+
+    try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if not username:
@@ -147,12 +149,19 @@ def blacklist_token(token: str, db: Session) -> None:
 
 
 def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
-    return (
-        db.query(TokenBlacklistORM)
-        .filter(TokenBlacklistORM.token == token)
-        .first()
-        is not None
-    )
+
+    try:
+        return (
+            db.query(TokenBlacklistORM)
+            .filter(TokenBlacklistORM.token == token)
+            .first()
+            is not None
+        )
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during token blacklisting check",
+        ) from e
 
 
 @router.post(
@@ -189,12 +198,12 @@ async def register_new_user(
             status=schemas.Status.Success, message=message
         )
     # Add exeption if user already in db!
-    except Exception:
+    except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while registering the user.",
-        )
+        ) from e
 
 
 @router.post(
@@ -254,3 +263,41 @@ async def get_user_info(
     ]
 ) -> schemas.UserResponse:
     return current_user
+
+
+@router.get(
+    "/users/me/history",
+    response_description="Get image classification history",
+)
+async def get_classification_history(
+    current_user: Annotated[
+        schemas.UserCreate, Depends(get_current_active_user)
+    ],
+    db: Annotated[Session, Depends(get_db)],
+    limit: Annotated[int, Query(description="Number of images to fetch")] = 5,
+) -> list[schemas.ImageClassificationHistory]:
+    user_id = current_user.id
+    try:
+        images = (
+            db.query(models.ImageORM)
+            .filter(models.ImageORM.user_id == user_id)
+            .order_by(models.ImageORM.creationdate.desc())
+            .limit(limit)
+            .all()
+        )
+        history = [
+            schemas.ImageClassificationHistory(
+                filename=image.filename,
+                label=image.label,
+                probability=image.probability,
+            )
+            for image in images
+        ]
+        return history
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while retrieving classification history",
+        ) from e
