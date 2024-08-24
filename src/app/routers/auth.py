@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 import app.models as models
@@ -88,13 +89,14 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        if is_blacklisted(token, db):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been blacklisted",
-            )
 
+    if is_blacklisted(token, db):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been blacklisted, please log in again.",
+        )
+
+    try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if not username:
@@ -147,12 +149,19 @@ def blacklist_token(token: str, db: Session) -> None:
 
 
 def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
-    return (
-        db.query(TokenBlacklistORM)
-        .filter(TokenBlacklistORM.token == token)
-        .first()
-        is not None
-    )
+
+    try:
+        return (
+            db.query(TokenBlacklistORM)
+            .filter(TokenBlacklistORM.token == token)
+            .first()
+            is not None
+        )
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during token blacklisting check",
+        ) from e
 
 
 @router.post(
@@ -189,12 +198,12 @@ async def register_new_user(
             status=schemas.Status.Success, message=message
         )
     # Add exeption if user already in db!
-    except Exception:
+    except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while registering the user.",
-        )
+        ) from e
 
 
 @router.post(

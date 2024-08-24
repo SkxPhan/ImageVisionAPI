@@ -148,4 +148,7 @@ def test_read_user_me(
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Token has been blacklisted"
+    assert (
+        response.json()["detail"]
+        == "Token has been blacklisted, please log in again."
+    )

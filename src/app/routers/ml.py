@@ -40,11 +40,11 @@ async def predict(
             prediction=category,
             probability=prob,
         )
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while classifying the image.",
-        )
+        ) from e
 
     try:
         new_image = models.ImageORM(
@@ -57,12 +57,12 @@ async def predict(
         db.add(new_image)
         db.commit()
         db.refresh(new_image)
-    except Exception:
+    except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while saving the image.",
-        )
+        ) from e
 
     return schemas.InferenceResponse(
         status=schemas.Status.Success, results=results
