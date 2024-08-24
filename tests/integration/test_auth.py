@@ -72,12 +72,7 @@ def test_login(test_client, login_endpoint, user_payload, user_db):
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_logout(
-    test_client,
-    logout_endpoint,
-    db_session,
-    access_token,
-):
+def test_logout(test_client, logout_endpoint, access_token, db_session):
     response = test_client.post(
         logout_endpoint,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -152,3 +147,65 @@ def test_read_user_me(
         response.json()["detail"]
         == "Token has been blacklisted, please log in again."
     )
+
+
+@pytest.mark.api
+@pytest.mark.integration
+def test_get_history(test_client, history_endpoint, access_token, db_session):
+    response = test_client.get(history_endpoint)
+    assert response.status_code == 401
+
+    images = [
+        models.ImageORM(
+            filename="test1.png",
+            image_data=b"\x00\x01",
+            label="category1",
+            probability="0.2",
+            user_id=1,
+        ),
+        models.ImageORM(
+            filename="test2.png",
+            image_data=b"\x04\x05",
+            label="category2",
+            probability="0.8",
+            user_id=1,
+        ),
+        models.ImageORM(
+            filename="test3.png",
+            image_data=b"\x08\x09",
+            label="category3",
+            probability="0.6",
+            user_id=1,
+        ),
+        models.ImageORM(
+            filename="test4.png",
+            image_data=b"\x08\x09",
+            label="category3",
+            probability="0.6",
+            user_id=2,
+        ),
+    ]
+    db_session.add_all(images)
+    db_session.commit()
+
+    response = test_client.get(
+        history_endpoint,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 3
+    assert response_data[0]["filename"] == "test1.png"
+    assert response_data[1]["filename"] == "test2.png"
+    assert response_data[2]["filename"] == "test3.png"
+
+    response = test_client.get(
+        history_endpoint,
+        headers={"Authorization": f"Bearer {access_token}"},
+        params={"limit": "2"},
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 2
+    assert response_data[0]["filename"] == "test1.png"
+    assert response_data[1]["filename"] == "test2.png"
