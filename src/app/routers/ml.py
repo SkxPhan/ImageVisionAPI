@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 import app.models as models
 from app.database import get_db
+from app.routers.auth import get_current_active_user
 from app.schemas import schemas
 
 router: APIRouter = APIRouter()
@@ -18,7 +19,11 @@ router: APIRouter = APIRouter()
     response_description="Classify an image using CNN",
 )
 async def predict(
-    file: UploadFile, db: Annotated[Session, Depends(get_db)]
+    file: UploadFile,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[
+        schemas.UserCreate, Depends(get_current_active_user)
+    ],
 ) -> schemas.InferenceResponse:
     from app.main import ml_models
 
@@ -47,6 +52,7 @@ async def predict(
             image_data=image_data,
             classification=category,
             probability=prob,
+            user_id=current_user.id,
         )
         db.add(new_image)
         db.commit()
