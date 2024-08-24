@@ -76,5 +76,5 @@ def test_predict(
         .first()
     )
     assert image is not None
-    assert image.classification == "mock_category"
+    assert image.label == "mock_category"
     assert image.user_id == 1

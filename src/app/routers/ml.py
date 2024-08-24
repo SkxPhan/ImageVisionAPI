@@ -50,7 +50,7 @@ async def predict(
         new_image = models.ImageORM(
             filename=file.filename,
             image_data=image_data,
-            classification=category,
+            label=category,
             probability=prob,
             user_id=current_user.id,
         )
