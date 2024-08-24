@@ -87,6 +87,12 @@ class UserCreate(UserResponse):
     )
 
 
+class ImageClassificationHistory(BaseModel):
+    filename: str
+    label: str
+    probability: float
+
+
 class Token(BaseModel):
     """
     Response schema when requesting an token.

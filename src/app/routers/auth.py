@@ -263,3 +263,38 @@ async def get_user_info(
     ]
 ) -> schemas.UserResponse:
     return current_user
+
+
+@router.get(
+    "/users/me/history",
+    response_description="Get image classification history",
+)
+async def get_classification_history(
+    current_user: Annotated[
+        schemas.UserCreate, Depends(get_current_active_user)
+    ],
+    db: Annotated[Session, Depends(get_db)],
+) -> list[schemas.ImageClassificationHistory]:
+    user_id = current_user.id
+    try:
+        images = (
+            db.query(models.ImageORM)
+            .filter(models.ImageORM.user_id == user_id)
+            .all()
+        )
+        history = [
+            schemas.ImageClassificationHistory(
+                filename=image.filename,
+                label=image.label,
+                probability=image.probability,
+            )
+            for image in images
+        ]
+        return history
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while retrieving classification history",
+        ) from e
