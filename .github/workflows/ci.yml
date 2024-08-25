@@ -34,8 +34,6 @@ jobs:
 
     - name: Test with tox
       run: tox
-      env:
-          TEMP_DIR: ${{ runner.temp }}
 
   code-quality:
         runs-on: ubuntu-latest
