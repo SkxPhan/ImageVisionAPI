@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
@@ -20,9 +21,9 @@ class InferenceResult(BaseModel):
     filename: str = Field(description="Filename", examples=["dog.png"])
     width: int = Field(description="Image width", examples=[640], gt=0.0)
     height: int = Field(description="Image height", examples=[480], gt=0.0)
-    prediction: str = Field(description="Image category", examples=["Dog"])
+    prediction: str = Field(description="Image label", examples=["Dog"])
     probability: float | None = Field(
-        description="Image category probability",
+        description="Image label probability",
         examples=[0.9735],
         ge=0.0,
         le=1.0,
@@ -87,10 +88,29 @@ class UserCreate(UserResponse):
     )
 
 
-class ImageClassificationHistory(BaseModel):
-    filename: str
-    label: str
-    probability: float
+class InferenceResultHistory(BaseModel):
+    """
+    Classification history schema.
+    """
+
+    filename: str = Field(description="Filename", examples=["dog.png"])
+    label: str = Field(description="Image label", examples=["Dog"])
+    probability: float = Field(
+        description="Image label probability", examples=[0.9735], ge=0.0, le=1.0
+    )
+    upload_timestamp: datetime = Field(
+        description="Timestamp", examples=[0.9735]
+    )
+
+
+class InferenceResultHistoryResponse(BaseModel):
+    """
+    Response schema when requesting classification history.
+    """
+
+    status: Status
+    username: str = Field(description="Username", examples=["JohnDoe"])
+    history: list[InferenceResultHistory]
 
 
 class Token(BaseModel):
