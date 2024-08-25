@@ -1,13 +1,13 @@
 services:
   backend:
-    image: image_vision_ai
+    image: image-vision-api
     pull_policy: never
-    container_name: image_vision_ai_container
+    container_name: image-vision-api_container
     build:
       context: .
       dockerfile: Dockerfile
     env_file:
-      ./src/app/.env
+      .env
     environment:
       POSTGRES_HOST: postgres
     ports:
@@ -20,7 +20,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
-      ./src/app/.env
+      .env
     ports:
       - 5432:5432
 
@@ -30,7 +30,7 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     env_file:
-      ./src/app/.env
+      .env
     ports:
       - 8080:80
     depends_on:

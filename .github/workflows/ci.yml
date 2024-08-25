@@ -59,4 +59,4 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t image_vision_api:${{ github.sha }} .
+          docker build -t image-vision-api:${{ github.sha }} .
