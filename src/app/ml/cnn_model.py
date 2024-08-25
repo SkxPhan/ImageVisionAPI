@@ -45,7 +45,9 @@ class ImageClassifier:
 
     def _load_model(self, model_path):
         try:
-            self._model.load_state_dict(torch.load(model_path))
+            self._model.load_state_dict(
+                torch.load(model_path, weights_only=True)
+            )
         except FileNotFoundError:
             raise ValueError(f"Model file not found: {model_path}")
 
