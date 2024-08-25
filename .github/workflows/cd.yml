@@ -19,9 +19,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: skxphan/image-vision-api:latest
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: skxphan/image-vision-api:latest
+
+      - name: Build docker image
+        run: docker build -t skxphan/image-vision-api:latest .
+
+      - name: Publish docker image to Docker Hub
+        run: docker push skxphan/image-vision-api:latest
