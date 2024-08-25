@@ -1,7 +1,4 @@
-# This workflow performs continuous integration tasks including building the project
-# and running tests. It runs on push and pull request events for the main branch.
-
-name: Continuous Integration
+name: CI
 
 on:
   pull_request:
@@ -62,9 +59,4 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t image_vision_ai:${{ github.sha }} .
-
-      # - name: (Optional) Push Docker image
-      #   run: |
-      #     docker tag image_vision_ai:${{ github.sha }} image_vision_ai/image_vision_ai:${{ github.sha }}
-      #     docker push image_vision_ai/image_vision_ai:${{ github.sha }}
+          docker build -t image_vision_api:${{ github.sha }} .
