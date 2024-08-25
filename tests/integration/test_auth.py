@@ -32,7 +32,7 @@ def test_register(test_client, register_endpoint, user_payload, db_session):
     assert response_data["status"] == "Success"
     assert (
         response_data["message"]
-        == f"User {user_payload["username"]} registered successfully."
+        == f"User {user_payload['username']} registered successfully."
     )
 
     user = (
