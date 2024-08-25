@@ -50,13 +50,13 @@ jobs:
         - name: Run Pre-commit hooks
           run: pre-commit run --all-files --show-diff-on-failure
 
-  build-docker-image:
-    runs-on: ubuntu-latest
-    needs: [build-and-test, code-quality]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-docker-image:
+  #   runs-on: ubuntu-latest
+  #   needs: [build-and-test, code-quality]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build -t image-vision-api:${{ github.sha }} .
+  #     - name: Build Docker image
+  #       run: |
+  #         docker build -t image-vision-api:${{ github.sha }} .
