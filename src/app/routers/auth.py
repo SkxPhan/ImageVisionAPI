@@ -267,7 +267,7 @@ async def get_user_info(
 
 @router.get(
     "/users/me/history",
-    response_description="Get image classification history",
+    response_description="Most recent image classification history",
 )
 async def get_classification_history(
     current_user: Annotated[
@@ -275,25 +275,29 @@ async def get_classification_history(
     ],
     db: Annotated[Session, Depends(get_db)],
     limit: Annotated[int, Query(description="Number of images to fetch")] = 5,
-) -> list[schemas.ImageClassificationHistory]:
-    user_id = current_user.id
+) -> schemas.InferenceResultHistoryResponse:
     try:
         images = (
             db.query(models.ImageORM)
-            .filter(models.ImageORM.user_id == user_id)
+            .filter(models.ImageORM.user_id == current_user.id)
             .order_by(models.ImageORM.creationdate.desc())
             .limit(limit)
             .all()
         )
         history = [
-            schemas.ImageClassificationHistory(
+            schemas.InferenceResultHistory(
                 filename=image.filename,
                 label=image.label,
                 probability=image.probability,
+                upload_timestamp=image.creationdate,
             )
             for image in images
         ]
-        return history
+        return schemas.InferenceResultHistoryResponse(
+            status=schemas.Status.Success,
+            username=current_user.username,
+            history=history,
+        )
 
     except Exception as e:
         print(e)

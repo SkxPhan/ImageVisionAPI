@@ -151,7 +151,9 @@ def test_read_user_me(
 
 @pytest.mark.api
 @pytest.mark.integration
-def test_get_history(test_client, history_endpoint, access_token, db_session):
+def test_get_history(
+    test_client, history_endpoint, access_token, user_payload, db_session
+):
     response = test_client.get(history_endpoint)
     assert response.status_code == 401
 
@@ -194,10 +196,14 @@ def test_get_history(test_client, history_endpoint, access_token, db_session):
     )
     assert response.status_code == 200
     response_data = response.json()
-    assert len(response_data) == 3
-    assert response_data[0]["filename"] == "test1.png"
-    assert response_data[1]["filename"] == "test2.png"
-    assert response_data[2]["filename"] == "test3.png"
+    assert response_data["status"] == "Success"
+    assert response_data["username"] == user_payload["username"]
+
+    history = response_data["history"]
+    assert len(history) == 3
+    assert history[0]["filename"] == "test1.png"
+    assert history[1]["filename"] == "test2.png"
+    assert history[2]["filename"] == "test3.png"
 
     response = test_client.get(
         history_endpoint,
@@ -206,6 +212,10 @@ def test_get_history(test_client, history_endpoint, access_token, db_session):
     )
     assert response.status_code == 200
     response_data = response.json()
-    assert len(response_data) == 2
-    assert response_data[0]["filename"] == "test1.png"
-    assert response_data[1]["filename"] == "test2.png"
+    assert response_data["status"] == "Success"
+    assert response_data["username"] == user_payload["username"]
+
+    history = response_data["history"]
+    assert len(history) == 2
+    assert history[0]["filename"] == "test1.png"
+    assert history[1]["filename"] == "test2.png"
