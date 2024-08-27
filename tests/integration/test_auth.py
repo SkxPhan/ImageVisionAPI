@@ -4,8 +4,8 @@ import bcrypt
 import pytest
 
 import app.models as models
+from app.api.v1.auth import create_access_token, get_user
 from app.database import TokenBlacklistORM
-from app.routers.auth import create_access_token, get_user
 
 
 @pytest.mark.integration

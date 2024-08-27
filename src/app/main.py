@@ -1,15 +1,13 @@
 import os
-import sys
 from contextlib import asynccontextmanager
 
-import torch
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import router
 from app.database import init_db
 from app.ml.cnn_model import ImageClassifier
-from app.routers import auth, ml
 
 origins = [
     "http://localhost:3000",
@@ -86,47 +84,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ml.router, tags=["ML"], prefix="/api/v1/ml")
-app.include_router(auth.router, tags=["Auth"], prefix="/api/v1/auth")
-
-
-@app.get(
-    "/",
-    tags=["Info"],
-    summary="API Live Checker",
-    response_description="Confirmation",
-)
-def healthchecker():
-    """
-    Simple endpoint to check that the API is live.
-    """
-    return {"message": "The API is LIVE!"}
-
-
-@app.get(
-    "/about",
-    tags=["Info"],
-    response_description="System information",
-)
-def show_system_info():
-    """
-    Get information about the environment and PyTorch version, for debugging.
-    """
-
-    def bash(command):
-        output = os.popen(command).read()
-        return output
-
-    return {
-        "sys.version": sys.version,
-        "torch.__version__": torch.__version__,
-        "torch.cuda.is_available()": torch.cuda.is_available(),
-        "torch.version.cuda": torch.version.cuda,
-        "torch.backends.cudnn.version()": torch.backends.cudnn.version(),
-        "torch.backends.cudnn.enabled": torch.backends.cudnn.enabled,
-        "nvidia-smi": bash("nvidia-smi"),
-    }
-
+app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run(

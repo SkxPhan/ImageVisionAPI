@@ -7,10 +7,11 @@ from sqlalchemy.orm import Session
 
 import app.models as models
 from app.database import get_db
-from app.routers.auth import get_current_active_user
 from app.schemas import schemas
 
-router: APIRouter = APIRouter()
+from .auth import get_current_active_user
+
+router: APIRouter = APIRouter(prefix="/ml", tags=["ML"])
 
 
 @router.post(

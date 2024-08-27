@@ -16,7 +16,7 @@ import app.models as models
 from app.database import TokenBlacklistORM, get_db
 from app.schemas import schemas
 
-router: APIRouter = APIRouter()
+router: APIRouter = APIRouter(prefix="/auth", tags=["Auth"])
 
 # run: openssl rand -hex 32
 load_dotenv()

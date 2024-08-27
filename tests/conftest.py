@@ -10,9 +10,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models as models
+from app.api.v1.auth import create_access_token, get_password_hash, get_user
 from app.database import Base, get_db
 from app.main import app
-from app.routers.auth import create_access_token, get_password_hash, get_user
 
 
 def pytest_addoption(parser):
@@ -144,17 +144,17 @@ def access_token(user_payload, user_db):
 # ------------------------------- API Endpoints -------------------------------
 @pytest.fixture
 def healthchecker_endpoint():
-    return "/"
+    return "/api/v1"
 
 
 @pytest.fixture
 def about_endpoint():
-    return "/about"
+    return "/api/v1/about"
 
 
 @pytest.fixture
 def predict_endpoint():
-    return "/api/v1/ml/predict/"
+    return "/api/v1/ml/predict"
 
 
 @pytest.fixture

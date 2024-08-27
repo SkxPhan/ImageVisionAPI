@@ -4,7 +4,7 @@ import sys
 import torch
 from fastapi import APIRouter
 
-router: APIRouter = APIRouter()
+router: APIRouter = APIRouter(tags=["Info"])
 
 
 @router.get(
