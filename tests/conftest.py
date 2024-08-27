@@ -105,7 +105,7 @@ def test_client(db_session):
 
 @pytest.fixture(autouse=True)
 def mock_init_db(monkeypatch):
-    monkeypatch.setattr("app.main.init_db", lambda: None)
+    monkeypatch.setattr("app.core.setup.init_db", lambda: None)
 
 
 # --------------------------------- Fake Data ---------------------------------

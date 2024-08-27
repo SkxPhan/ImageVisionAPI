@@ -26,7 +26,7 @@ async def predict(
         schemas.UserCreate, Depends(get_current_active_user)
     ],
 ) -> schemas.InferenceResponse:
-    from app.main import ml_models
+    from app.core.setup import ml_models
 
     try:
         image_data = await file.read()

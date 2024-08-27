@@ -3,7 +3,7 @@ import io
 import pytest
 
 import app.models as models
-from app.main import ml_models
+from app.core.setup import ml_models
 
 
 @pytest.fixture(scope="function")
