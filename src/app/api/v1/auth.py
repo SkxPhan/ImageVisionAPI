@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal
 import bcrypt
 import jwt
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
@@ -251,57 +251,3 @@ async def logout(
 
     except JWTError:
         unauthorized_exception
-
-
-@router.get(
-    "/users/me",
-    response_description="Information of the current user",
-)
-async def get_user_info(
-    current_user: Annotated[
-        schemas.UserCreate, Depends(get_current_active_user)
-    ]
-) -> schemas.UserResponse:
-    return current_user
-
-
-@router.get(
-    "/users/me/history",
-    response_description="Most recent image classification history",
-)
-async def get_classification_history(
-    current_user: Annotated[
-        schemas.UserCreate, Depends(get_current_active_user)
-    ],
-    db: Annotated[Session, Depends(get_db)],
-    limit: Annotated[int, Query(description="Number of images to fetch")] = 5,
-) -> schemas.InferenceResultHistoryResponse:
-    try:
-        images = (
-            db.query(models.ImageORM)
-            .filter(models.ImageORM.user_id == current_user.id)
-            .order_by(models.ImageORM.creationdate.desc())
-            .limit(limit)
-            .all()
-        )
-        history = [
-            schemas.InferenceResultHistory(
-                filename=image.filename,
-                label=image.label,
-                probability=image.probability,
-                upload_timestamp=image.creationdate,
-            )
-            for image in images
-        ]
-        return schemas.InferenceResultHistoryResponse(
-            status=schemas.Status.Success,
-            username=current_user.username,
-            history=history,
-        )
-
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while retrieving classification history",
-        ) from e

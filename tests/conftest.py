@@ -174,9 +174,9 @@ def logout_endpoint():
 
 @pytest.fixture
 def read_user_me_endpoint():
-    return "/api/v1/auth/users/me"
+    return "/api/v1/users/me"
 
 
 @pytest.fixture
 def history_endpoint():
-    return "/api/v1/auth/users/me/history"
+    return "/api/v1/users/me/history"
