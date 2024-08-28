@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Annotated, Any
 
 import bcrypt
 import jwt
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.db.database import TokenBlacklistORM, get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -41,3 +45,33 @@ def create_access_token(
         algorithm=settings.ALGORITHM,
     )
     return encoded_jwt
+
+
+def blacklist_token(token: str, db: Session) -> None:
+    from app.db.database import TokenBlacklistORM
+
+    payload = jwt.decode(
+        token,
+        settings.SECRET_KEY.get_secret_value(),
+        algorithms=[settings.ALGORITHM],
+    )
+    expires_at = datetime.fromtimestamp(payload.get("exp"))
+    token_blacklist = TokenBlacklistORM(token=token, expires_at=expires_at)
+    db.add(token_blacklist)
+    db.commit()
+
+
+def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
+
+    try:
+        return (
+            db.query(TokenBlacklistORM)
+            .filter(TokenBlacklistORM.token == token)
+            .first()
+            is not None
+        )
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during token blacklisting check",
+        ) from e

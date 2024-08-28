@@ -1,131 +1,26 @@
-from datetime import datetime, timedelta
-from typing import Annotated, Literal
+from datetime import timedelta
+from typing import Annotated
 
-import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 import app.models as models
 from app.core.config import settings
 from app.core.security import (
+    blacklist_token,
     create_access_token,
     get_password_hash,
+    is_blacklisted,
     oauth2_scheme,
-    verify_password,
 )
-from app.db.database import TokenBlacklistORM, get_db
+from app.db.database import get_db
 from app.schemas import schemas
 
-from ..dependencies import get_user
+from ..dependencies import authenticate_user, user_already_registered
 
 router: APIRouter = APIRouter(prefix="/auth", tags=["Auth"])
-
-
-def authenticate_user(
-    username: str, password: str, db: Session
-) -> models.UserORM | Literal[False]:
-    user = get_user(username, db)
-    if not user:
-        return False
-    elif not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-
-def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    if is_blacklisted(token, db):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been blacklisted, please log in again.",
-        )
-
-    try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY.get_secret_value(),
-            algorithms=[settings.ALGORITHM],
-        )
-        username: str = payload.get("sub")
-        if not username:
-            raise credentials_exception
-
-        token_data = schemas.TokenData(username=username)
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-        )
-    except InvalidTokenError:
-        raise credentials_exception
-
-    user = get_user(username=token_data.username, db=db)
-    if user is None:
-        raise credentials_exception
-
-    return user
-
-
-async def get_current_active_user(
-    current_user: Annotated[models.UserORM, Depends(get_current_user)],
-):
-    if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
-def user_already_registered(user: models.UserORM, db: Session) -> bool:
-    return (
-        db.query(models.UserORM)
-        .filter(
-            models.UserORM.username == user.username
-            or models.UserORM.email == user.email
-        )
-        .first()
-        is not None
-    )
-
-
-def blacklist_token(token: str, db: Session) -> None:
-    from app.db.database import TokenBlacklistORM
-
-    payload = jwt.decode(
-        token,
-        settings.SECRET_KEY.get_secret_value(),
-        algorithms=[settings.ALGORITHM],
-    )
-    expires_at = datetime.fromtimestamp(payload.get("exp"))
-    token_blacklist = TokenBlacklistORM(token=token, expires_at=expires_at)
-    db.add(token_blacklist)
-    db.commit()
-
-
-def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
-
-    try:
-        return (
-            db.query(TokenBlacklistORM)
-            .filter(TokenBlacklistORM.token == token)
-            .first()
-            is not None
-        )
-    except SQLAlchemyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error during token blacklisting check",
-        ) from e
 
 
 @router.post(
@@ -161,7 +56,6 @@ async def register_new_user(
         return schemas.RegisterResponse(
             status=schemas.Status.Success, message=message
         )
-    # Add exeption if user already in db!
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -212,7 +106,7 @@ async def logout(
     try:
         if is_blacklisted(access_token, db):
             raise unauthorized_exception
-        blacklist_token(token=access_token, db=db)
+        blacklist_token(access_token, db)
     except JWTError:
         unauthorized_exception
     return {"message": "Logged out successfully"}

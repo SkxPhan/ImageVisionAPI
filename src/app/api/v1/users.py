@@ -7,7 +7,7 @@ import app.models as models
 from app.db.database import get_db
 from app.schemas import schemas
 
-from .auth import get_current_active_user
+from ..dependencies import get_current_active_user
 
 router: APIRouter = APIRouter(prefix="/users", tags=["User"])
 
