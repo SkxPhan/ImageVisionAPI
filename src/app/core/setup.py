@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import init_db
-from app.ml.cnn_model import ImageClassifier
+from app.core.config import settings
+from app.core.ml.cnn_model import ImageClassifier
+from app.db.database import init_db
 
 origins = [
     "http://localhost:3000",
@@ -55,8 +56,8 @@ async def lifespan(app: FastAPI):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     parent_directory = os.path.dirname(current_directory)
     ml_models["image_classifier"] = ImageClassifier(
-        model_path=parent_directory + "/ml/mobilenet_v3_large.pth",
-        categories_path=parent_directory + "/ml/imagenet_classes.txt",
+        model_path=os.path.join(parent_directory, settings.MODEL_PATH),
+        label_path=os.path.join(parent_directory, settings.LABEL_PATH),
     )
     yield
     # Clean up the ML models and release the resources

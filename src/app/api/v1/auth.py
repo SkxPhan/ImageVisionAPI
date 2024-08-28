@@ -1,57 +1,28 @@
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any, Literal
+from datetime import datetime, timedelta
+from typing import Annotated, Literal
 
-import bcrypt
 import jwt
-from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 import app.models as models
-from app.database import TokenBlacklistORM, get_db
+from app.core.config import settings
+from app.core.security import (
+    create_access_token,
+    get_password_hash,
+    oauth2_scheme,
+    verify_password,
+)
+from app.db.database import TokenBlacklistORM, get_db
 from app.schemas import schemas
 
+from ..dependencies import get_user
+
 router: APIRouter = APIRouter(prefix="/auth", tags=["Auth"])
-
-# run: openssl rand -hex 32
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
-
-
-def get_password_hash(password: str) -> str:
-    hashed_password: str = bcrypt.hashpw(
-        password.encode(), bcrypt.gensalt()
-    ).decode()
-    return hashed_password
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    correct_password: bool = bcrypt.checkpw(
-        plain_password.encode(), hashed_password.encode()
-    )
-    return correct_password
-
-
-def get_user(username: str | None, db: Session) -> models.UserORM | None:
-    if username is None:
-        return None
-
-    user = (
-        db.query(models.UserORM)
-        .filter(models.UserORM.username == username)
-        .first()
-    )
-
-    return user or None
 
 
 def authenticate_user(
@@ -63,21 +34,6 @@ def authenticate_user(
     elif not verify_password(password, user.hashed_password):
         return False
     return user
-
-
-def create_access_token(
-    data: dict[str, Any], expires_delta: timedelta | None = None
-) -> str:
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-        )
-    to_encode.update({"exp": expire})
-    encoded_jwt: str = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
 
 
 def get_current_user(
@@ -97,7 +53,11 @@ def get_current_user(
         )
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[settings.ALGORITHM],
+        )
         username: str = payload.get("sub")
         if not username:
             raise credentials_exception
@@ -139,9 +99,13 @@ def user_already_registered(user: models.UserORM, db: Session) -> bool:
 
 
 def blacklist_token(token: str, db: Session) -> None:
-    from app.database import TokenBlacklistORM
+    from app.db.database import TokenBlacklistORM
 
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    payload = jwt.decode(
+        token,
+        settings.SECRET_KEY.get_secret_value(),
+        algorithms=[settings.ALGORITHM],
+    )
     expires_at = datetime.fromtimestamp(payload.get("exp"))
     token_blacklist = TokenBlacklistORM(token=token, expires_at=expires_at)
     db.add(token_blacklist)
@@ -221,7 +185,9 @@ async def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -237,7 +203,7 @@ async def login(
 async def logout(
     access_token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
-) -> Response:
+) -> dict[str, str]:
     unauthorized_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token.",
@@ -247,7 +213,6 @@ async def logout(
         if is_blacklisted(access_token, db):
             raise unauthorized_exception
         blacklist_token(token=access_token, db=db)
-        return {"message": "Logged out successfully"}
-
     except JWTError:
         unauthorized_exception
+    return {"message": "Logged out successfully"}

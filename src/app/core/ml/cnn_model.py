@@ -12,8 +12,8 @@ class Preprocessor(torch.nn.Module):
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],  # Use config file
-                    std=[0.229, 0.224, 0.225],  # Use config file
+                    mean=[0.485, 0.456, 0.406],  # Specific mean to the model
+                    std=[0.229, 0.224, 0.225],  # Specific std to the model
                 ),
             ]
         )
@@ -25,8 +25,8 @@ class Preprocessor(torch.nn.Module):
 class ImageClassifier:
     def __init__(
         self,
-        model_path="mobilenet_v3_large.pth",  # Use config file
-        categories_path="imagenet_classes.txt",
+        model_path,
+        label_path,
         device=None,
     ):
         self._preprocessor = Preprocessor()
@@ -41,7 +41,7 @@ class ImageClassifier:
         self._model.to(self._device)
         self._model.eval()
 
-        self._categories = self._load_categories(categories_path)
+        self._categories = self._load_categories(label_path)
 
     def _load_model(self, model_path):
         try:
@@ -51,12 +51,12 @@ class ImageClassifier:
         except FileNotFoundError:
             raise ValueError(f"Model file not found: {model_path}")
 
-    def _load_categories(self, categories_path):
+    def _load_categories(self, label_path):
         try:
-            with open(categories_path) as f:
+            with open(label_path) as f:
                 return [s.strip() for s in f.readlines()]
         except FileNotFoundError:
-            raise ValueError(f"Categories file not found: {categories_path}")
+            raise ValueError(f"Categories file not found: {label_path}")
 
     def predict(self, image):
         input_tensor = self._preprocessor(image).unsqueeze(0).to(self._device)
@@ -87,9 +87,10 @@ class ImageClassifier:
 def main():  # pragma: no cover
     image_file = "dog.jpg"
     model_path = "mobilenet_v3_large.pth"
+    label_path = "imagenet_classes.txt"
 
     # Initialize the classifier
-    classifier = ImageClassifier(model_path)
+    classifier = ImageClassifier(model_path, label_path)
 
     # Perform prediction
     image = Image.open(image_file)

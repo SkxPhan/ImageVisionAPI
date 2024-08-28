@@ -1,24 +1,16 @@
-import os
 from datetime import datetime
 from typing import Any
 
-from dotenv import load_dotenv
 from sqlalchemy import DateTime, String, create_engine
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, sessionmaker
 
-load_dotenv()
+from app.core.config import settings
 
-POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
+DATABASE_URI = settings.POSTGRES_URI
+DATABASE_PREFIX = settings.POSTGRES_SYNC_PREFIX
+DATABASE_URL = f"{DATABASE_PREFIX}{DATABASE_URI}"
 
-SQLALCHEMY_DATABASE_URL = (
-    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
-    f"@{POSTGRES_HOST}/{POSTGRES_DB}"
-)
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base: Any = declarative_base()

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 import app.models as models
-from app.database import get_db
+from app.db.database import get_db
 from app.schemas import schemas
 
 from .auth import get_current_active_user
@@ -29,9 +29,7 @@ async def get_user_info(
     response_description="Most recent image classification history",
 )
 async def get_classification_history(
-    current_user: Annotated[
-        schemas.UserCreate, Depends(get_current_active_user)
-    ],
+    current_user: Annotated[models.UserORM, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
     limit: Annotated[int, Query(description="Number of images to fetch")] = 5,
 ) -> schemas.InferenceResultHistoryResponse:

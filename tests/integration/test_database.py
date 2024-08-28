@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from app.database import TokenBlacklistORM
+from app.db.database import TokenBlacklistORM
 
 
 @pytest.mark.integration

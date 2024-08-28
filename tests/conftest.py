@@ -10,8 +10,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models as models
-from app.api.v1.auth import create_access_token, get_password_hash, get_user
-from app.database import Base, get_db
+from app.api.dependencies import get_user
+from app.core.security import create_access_token, get_password_hash
+from app.db.database import Base, get_db
 from app.main import app
 
 
