@@ -5,11 +5,13 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.database import TokenBlacklistORM, get_db
+from app.schemas import schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -75,3 +77,32 @@ def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error during token blacklisting check",
         ) from e
+
+
+def verify_token(token: str, db) -> schemas.TokenData:
+    if is_blacklisted(token, db):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been blacklisted, please log in again.",
+        )
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[settings.ALGORITHM],
+        )
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        )
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    username: str = payload.get("sub")
+    return schemas.TokenData(username=username)
