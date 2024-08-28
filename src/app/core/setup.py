@@ -14,23 +14,6 @@ origins = [
 
 ml_models = {}
 
-
-description = """
-    ImageVisionAPI helps you do awesome stuff. 🚀
-
-    ## Machine Learning
-
-    You can **classify** images.
-
-    ## Users
-
-    You will be able to:
-
-    * **Create users**.
-    * **Classify images**.
-    * **Vizualize history of previous classifications** (_not implemented_).
-    """
-
 tags_metadata = [
     {
         "name": "Auth",
@@ -67,15 +50,15 @@ async def lifespan(app: FastAPI):
 def create_application(router, settings, create_tables_on_start=True, **kwargs):
     # Initialize API Server
     app = FastAPI(
-        title="Image Classification Web API",
-        description=description,
-        summary="Web API for image classification",
-        version="0.1.0",
+        title=settings.APP_NAME,
+        description=settings.APP_DESCRIPTION,
+        summary=settings.APP_SUMMARY,
+        version=settings.APP_VERSION,
         terms_of_service=None,
-        contact={"name": "SkxPhan", "url": "https://github.com/SkxPhan"},
+        contact={"name": settings.CONTACT_NAME, "url": settings.CONTACT_URL},
         license_info={
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT",
+            "name": settings.LICENSE_NAME,
+            "url": settings.LICENSE_URL,
         },
         lifespan=lifespan,
         openapi_tags=tags_metadata,

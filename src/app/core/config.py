@@ -12,11 +12,13 @@ config = Config(env_path)
 
 class AppSettings(BaseSettings):
     APP_NAME: str = config("APP_NAME", default="FastAPI app")
+    APP_SUMMARY: str | None = config("APP_SUMMARY", default=None)
     APP_DESCRIPTION: str | None = config("APP_DESCRIPTION", default=None)
     APP_VERSION: str | None = config("APP_VERSION", default=None)
     LICENSE_NAME: str | None = config("LICENSE", default=None)
+    LICENSE_URL: str | None = config("LICENSE_URL", default=None)
     CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
-    CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
+    CONTACT_URL: str | None = config("CONTACT_URL", default=None)
 
 
 class CryptSettings(BaseSettings):
