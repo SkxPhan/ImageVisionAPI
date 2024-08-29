@@ -7,7 +7,9 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 import app.models as models
+from app.api.dependencies import authenticate_user, user_already_registered
 from app.core.config import settings
+from app.core.schemas import Token
 from app.core.security import (
     blacklist_token,
     create_access_token,
@@ -17,8 +19,6 @@ from app.core.security import (
 )
 from app.db.database import get_db
 from app.schemas import schemas
-
-from ..dependencies import authenticate_user, user_already_registered
 
 router: APIRouter = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -71,7 +71,7 @@ async def register_new_user(
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
-) -> schemas.Token:
+) -> Token:
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(
@@ -85,9 +85,7 @@ async def login(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return schemas.Token(
-        access_token=access_token, token_type="bearer"
-    )  # nosec
+    return Token(access_token=access_token, token_type="bearer")  # nosec
 
 
 @router.post(

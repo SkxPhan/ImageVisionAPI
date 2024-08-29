@@ -39,5 +39,9 @@ def show_system_info():
         "torch.version.cuda": torch.version.cuda,
         "torch.backends.cudnn.version()": torch.backends.cudnn.version(),
         "torch.backends.cudnn.enabled": torch.backends.cudnn.enabled,
-        "nvidia-smi": bash("nvidia-smi"),
+        "nvidia-smi": (
+            bash("nvidia-smi")
+            if torch.cuda.is_available()
+            else "CUDA not available"
+        ),
     }

@@ -10,8 +10,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.schemas import TokenData
 from app.db.database import TokenBlacklistORM, get_db
-from app.schemas import schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -79,7 +79,7 @@ def is_blacklisted(token: str, db: Annotated[Session, Depends(get_db)]):
         ) from e
 
 
-def verify_token(token: str, db) -> schemas.TokenData:
+def verify_token(token: str, db) -> TokenData:
     if is_blacklisted(token, db):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -105,4 +105,4 @@ def verify_token(token: str, db) -> schemas.TokenData:
         )
 
     username: str = payload.get("sub")
-    return schemas.TokenData(username=username)
+    return TokenData(username=username)

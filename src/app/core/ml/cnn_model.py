@@ -40,7 +40,6 @@ class ImageClassifier:
         self._load_model(model_path)
         self._model.to(self._device)
         self._model.eval()
-
         self._categories = self._load_categories(label_path)
 
     def _load_model(self, model_path):
@@ -69,15 +68,15 @@ class ImageClassifier:
 
     def top_k_predictions(self, image, k=5):
         probabilities = self.predict(image)
-        top_prob, top_cat_id = torch.topk(probabilities, k)
+        top_prob, top_label_id = torch.topk(probabilities, k)
         return [
-            (self._categories[cat_id], prob.item())
-            for prob, cat_id in zip(top_prob, top_cat_id)
+            (self._categories[label_id], prob.item())
+            for prob, label_id in zip(top_prob, top_label_id)
         ]
 
     def predict_category(self, image):
         top_2_predictions = self.top_k_predictions(image, 2)
-        threshold_mul = 2
+        threshold_mul = 2  # prob first guess > 2 * prob second guess
         if top_2_predictions[0][1] > top_2_predictions[1][1] * threshold_mul:
             return (top_2_predictions[0][0], top_2_predictions[0][1])
         else:
