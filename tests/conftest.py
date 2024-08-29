@@ -10,9 +10,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models as models
-from app.database import Base, get_db
+from app.api.dependencies import get_user
+from app.core.security import create_access_token, get_password_hash
+from app.db.database import Base, get_db
 from app.main import app
-from app.routers.auth import create_access_token, get_password_hash, get_user
 
 
 def pytest_addoption(parser):
@@ -105,7 +106,7 @@ def test_client(db_session):
 
 @pytest.fixture(autouse=True)
 def mock_init_db(monkeypatch):
-    monkeypatch.setattr("app.main.init_db", lambda: None)
+    monkeypatch.setattr("app.core.setup.init_db", lambda: None)
 
 
 # --------------------------------- Fake Data ---------------------------------
@@ -144,17 +145,17 @@ def access_token(user_payload, user_db):
 # ------------------------------- API Endpoints -------------------------------
 @pytest.fixture
 def healthchecker_endpoint():
-    return "/"
+    return "/api/v1"
 
 
 @pytest.fixture
 def about_endpoint():
-    return "/about"
+    return "/api/v1/about"
 
 
 @pytest.fixture
 def predict_endpoint():
-    return "/api/v1/ml/predict/"
+    return "/api/v1/ml/predict"
 
 
 @pytest.fixture
@@ -174,9 +175,9 @@ def logout_endpoint():
 
 @pytest.fixture
 def read_user_me_endpoint():
-    return "/api/v1/auth/users/me"
+    return "/api/v1/users/me"
 
 
 @pytest.fixture
 def history_endpoint():
-    return "/api/v1/auth/users/me/history"
+    return "/api/v1/users/me/history"

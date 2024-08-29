@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from app.ml.cnn_model import ImageClassifier, Preprocessor
+from app.core.ml.cnn_model import ImageClassifier, Preprocessor
 
 
 @pytest.fixture(scope="function")
@@ -16,7 +16,7 @@ def mocked_image_classifier(monkeypatch):
 
     monkeypatch.setattr(ImageClassifier, "predict", mock_predict)
 
-    return ImageClassifier()
+    return ImageClassifier(model_path=None, label_path=None)
 
 
 @pytest.mark.unit

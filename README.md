@@ -29,7 +29,7 @@ This project provides a comprehensive example of how to build a machine learning
 
 - **CNN Model**: Image classification using a Convolutional Neural Network built with PyTorch.
 - **FastAPI**: High-performance API backend.
-- **Gradio**: User-friendly interface for image upload and classification.
+- **Gradio**: User-friendly interface for image upload and classification. (TODO)
 - **PostgreSQL**: Relational database for storing user data and classification history.
 - **User Authentication**: Secure JWT-based authentication.
 - **CI/CD**: Continuous integration and deployment using GitHub Actions.
@@ -55,7 +55,7 @@ This project provides a comprehensive example of how to build a machine learning
 - Docker
 - Docker Compose
 - Poetry
-- Python 3.8+
+- Python 3.10+
 
 ### Clone the repository
 
@@ -73,25 +73,13 @@ poetry install
 ### Setup environment variables
 
 Create a `.env` file in the root directory and add the following variables:
-```bash
-DATABASE_URL=postgresql://user:password@db:5432/database
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-### Initialize the database
-
-```bash
-poetry run python app/db/init_db.py
-```
 
 ### Run the application
 ```bash
 docker-compose up --build
 ```
 
-The FastAPI application will be available at `http://localhost:8000`, and the Gradio interface will be available at `http://localhost:7860`.
+The FastAPI application will be available at `http://localhost:8000`.
 
 ## Usage
 
@@ -99,17 +87,16 @@ The FastAPI application will be available at `http://localhost:8000`, and the Gr
 
 - Register: `POST /api/v1/auth/register`
 - Login: `POST /api/v1/auth/login`
-- Upload Image: `POST /api/v1/images/upload`
-- Get History: `GET /api/v1/images/history`
-
-### Gradio Interface
-Visit `http://localhost:7860` to use the Gradio interface for image classification.
+- Logout: `POST /api/v1/auth/logout`
+- Classify Image: `POST /api/v1/ml/predict`
+- Get User Info: `GET /api/v1/users/me`
+- Get History: `GET /api/v1/users/me/history`
 
 ## API Documentation
 FastAPI provides interactive API documentation at `http://localhost:8000/docs` and `http://localhost:8000/redoc`.
 
 ## CI/CD
-The project includes a GitHub Actions workflow for continuous integration and deployment. The workflow is defined in `.github/workflows/ci.yml` and includes steps for running tests, building Docker images, and deploying the application.
+The project includes a GitHub Actions workflow for continuous integration and deployment and defined in `.github/workflows`.
 
 ## License
 

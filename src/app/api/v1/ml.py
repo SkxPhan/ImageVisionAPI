@@ -6,11 +6,11 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 import app.models as models
-from app.database import get_db
-from app.routers.auth import get_current_active_user
+from app.api.dependencies import get_current_active_user
+from app.db.database import get_db
 from app.schemas import schemas
 
-router: APIRouter = APIRouter()
+router: APIRouter = APIRouter(prefix="/ml", tags=["ML"])
 
 
 @router.post(
@@ -21,11 +21,9 @@ router: APIRouter = APIRouter()
 async def predict(
     file: UploadFile,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[
-        schemas.UserCreate, Depends(get_current_active_user)
-    ],
+    current_user: Annotated[models.UserORM, Depends(get_current_active_user)],
 ) -> schemas.InferenceResponse:
-    from app.main import ml_models
+    from app.core.setup import ml_models
 
     try:
         image_data = await file.read()

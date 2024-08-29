@@ -113,23 +113,6 @@ class InferenceResultHistoryResponse(BaseModel):
     history: list[InferenceResultHistory]
 
 
-class Token(BaseModel):
-    """
-    Response schema when requesting an token.
-    """
-
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    """
-    Token schema.
-    """
-
-    username: str | None = None
-
-
 class ErrorResponse(BaseModel):
     """
     Error response schema.

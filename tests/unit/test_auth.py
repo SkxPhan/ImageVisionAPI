@@ -1,7 +1,7 @@
 import bcrypt
 import pytest
 
-from app.routers.auth import get_password_hash, verify_password
+from app.core.security import get_password_hash, verify_password
 
 
 @pytest.mark.unit

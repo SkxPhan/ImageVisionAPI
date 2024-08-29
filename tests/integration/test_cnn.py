@@ -2,7 +2,7 @@ import pytest
 import torch
 from PIL import Image
 
-from app.ml.cnn_model import ImageClassifier
+from app.core.ml.cnn_model import ImageClassifier
 
 
 @pytest.fixture

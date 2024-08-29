@@ -3,7 +3,7 @@ import io
 import pytest
 
 import app.models as models
-from app.main import ml_models
+from app.core.setup import ml_models
 
 
 @pytest.fixture(scope="function")
@@ -21,19 +21,6 @@ def mock_image_classifier(monkeypatch):
             return "mock_category", 0.99
 
     monkeypatch.setitem(ml_models, "image_classifier", MockImageClassifier())
-
-
-@pytest.mark.api
-def test_healthchecker(test_client, healthchecker_endpoint):
-    response = test_client.get(healthchecker_endpoint)
-    assert response.status_code == 200
-    assert response.json() == {"message": "The API is LIVE!"}
-
-
-@pytest.mark.api
-def test_show_about(test_client, about_endpoint):
-    response = test_client.get(about_endpoint)
-    assert response.status_code == 200
 
 
 @pytest.mark.api

@@ -3,16 +3,16 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "ImageVisionAI"
-version = "0.0.1"
-description = "Real-Time Image Classification Web Application with FastAPI and Gradio"
+name = "ImageVisionAPI"
+version = "0.1.0"
+description = "Image Classification Web API with FastAPI and Pytorch"
 authors = ["SkxPhan <110777139+SkxPhan@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "app", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.10,<4.0"
 fastapi = "^0.111.1"
 uvicorn = "^0.30.3"
 gunicorn = "^22.0.0"
@@ -25,6 +25,7 @@ torchvision = "^0.19.0"
 psycopg2-binary = "^2.9.9"
 bcrypt = "^4.2.0"
 pyjwt = "^2.9.0"
+pydantic-settings = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.1"

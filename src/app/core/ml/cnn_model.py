@@ -12,8 +12,8 @@ class Preprocessor(torch.nn.Module):
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],  # Use config file
-                    std=[0.229, 0.224, 0.225],  # Use config file
+                    mean=[0.485, 0.456, 0.406],  # Specific mean to the model
+                    std=[0.229, 0.224, 0.225],  # Specific std to the model
                 ),
             ]
         )
@@ -25,8 +25,8 @@ class Preprocessor(torch.nn.Module):
 class ImageClassifier:
     def __init__(
         self,
-        model_path="mobilenet_v3_large.pth",  # Use config file
-        categories_path="imagenet_classes.txt",
+        model_path,
+        label_path,
         device=None,
     ):
         self._preprocessor = Preprocessor()
@@ -40,8 +40,7 @@ class ImageClassifier:
         self._load_model(model_path)
         self._model.to(self._device)
         self._model.eval()
-
-        self._categories = self._load_categories(categories_path)
+        self._categories = self._load_categories(label_path)
 
     def _load_model(self, model_path):
         try:
@@ -51,12 +50,12 @@ class ImageClassifier:
         except FileNotFoundError:
             raise ValueError(f"Model file not found: {model_path}")
 
-    def _load_categories(self, categories_path):
+    def _load_categories(self, label_path):
         try:
-            with open(categories_path) as f:
+            with open(label_path) as f:
                 return [s.strip() for s in f.readlines()]
         except FileNotFoundError:
-            raise ValueError(f"Categories file not found: {categories_path}")
+            raise ValueError(f"Categories file not found: {label_path}")
 
     def predict(self, image):
         input_tensor = self._preprocessor(image).unsqueeze(0).to(self._device)
@@ -69,15 +68,15 @@ class ImageClassifier:
 
     def top_k_predictions(self, image, k=5):
         probabilities = self.predict(image)
-        top_prob, top_cat_id = torch.topk(probabilities, k)
+        top_prob, top_label_id = torch.topk(probabilities, k)
         return [
-            (self._categories[cat_id], prob.item())
-            for prob, cat_id in zip(top_prob, top_cat_id)
+            (self._categories[label_id], prob.item())
+            for prob, label_id in zip(top_prob, top_label_id)
         ]
 
     def predict_category(self, image):
         top_2_predictions = self.top_k_predictions(image, 2)
-        threshold_mul = 2
+        threshold_mul = 2  # prob first guess > 2 * prob second guess
         if top_2_predictions[0][1] > top_2_predictions[1][1] * threshold_mul:
             return (top_2_predictions[0][0], top_2_predictions[0][1])
         else:
@@ -87,9 +86,10 @@ class ImageClassifier:
 def main():  # pragma: no cover
     image_file = "dog.jpg"
     model_path = "mobilenet_v3_large.pth"
+    label_path = "imagenet_classes.txt"
 
     # Initialize the classifier
-    classifier = ImageClassifier(model_path)
+    classifier = ImageClassifier(model_path, label_path)
 
     # Perform prediction
     image = Image.open(image_file)
