@@ -30,8 +30,14 @@ class CryptSettings(BaseSettings):
 
 
 class CNNSettings:
-    MODEL_PATH: str = config("MODEL_PATH")
-    LABEL_PATH: str = config("LABEL_PATH")
+    MODEL_PATH: str = config(
+        "MODEL_PATH",
+        default=os.path.join("ml", "mobilenet_v3_large.pth"),
+    )
+    LABEL_PATH: str = config(
+        "LABEL_PATH",
+        default=os.path.join("ml", "imagenet_classes.txt"),
+    )
 
 
 class DatabaseSettings(BaseSettings):
