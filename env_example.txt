@@ -1,13 +1,25 @@
-POSTGRES_USER=postgres_user
-POSTGRES_PASSWORD=postgres_password
+SECRET_KEY=
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=
 POSTGRES_DB=dbname
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
-PGTZ=timezone_code
+PGTZ=Asia/Tokyo
 
 PGADMIN_DEFAULT_EMAIL=example@example.com
-PGADMIN_DEFAULT_PASSWORD=password
+PGADMIN_DEFAULT_PASSWORD=
 
-SECRET_KEY=secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+MODEL_PATH=core/ml/mobilenet_v3_large.pth
+LABEL_PATH=core/ml/imagenet_classes.txt
+
+APP_NAME=Image Classification Web API
+APP_SUMMARY=Web API for image classification
+APP_DESCRIPTION="ImageVisionAPI helps you do awesome stuff. 🚀\n\n## Machine Learning\n\nYou can perform image classification using **Convolution Neural Network** (CNN).\n\n## Users\n\nYou will be able to:\n\n* **Create users**.\n* **Classify images**.\n* **Get history of previous classifications**."
+APP_VERSION=0.1.0
+LICENSE=MIT
+LICENSE_URL=https://opensource.org/licenses/MIT
+CONTACT_NAME=SkxPhan
+CONTACT_URL=https://github.com/SkxPhan
