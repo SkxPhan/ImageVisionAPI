@@ -72,7 +72,7 @@ poetry install
 
 ### Setup environment variables
 
-Create a `.env` file in the root directory and add the following variables:
+Create a `.env` file in the root directory. See [env_example.txt](env_example.txt) for more details.
 
 ### Run the application
 ```bash
@@ -93,7 +93,7 @@ The FastAPI application will be available at `http://localhost:8000`.
 - Get History: `GET /api/v1/users/me/history`
 
 ## API Documentation
-FastAPI provides interactive API documentation at `http://localhost:8000/docs` and `http://localhost:8000/redoc`.
+FastAPI provides interactive API documentation (Swagger) at `http://localhost:8000/docs` and `http://localhost:8000/redoc`.
 
 ## CI/CD
 The project includes a GitHub Actions workflow for continuous integration and deployment and defined in `.github/workflows`.
