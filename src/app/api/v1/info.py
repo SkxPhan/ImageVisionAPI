@@ -12,7 +12,7 @@ router: APIRouter = APIRouter(tags=["Info"])
     summary="API Live Checker",
     response_description="Confirmation",
 )
-def healthchecker():
+async def healthchecker():
     """
     Simple endpoint to check that the API is live.
     """
@@ -23,7 +23,7 @@ def healthchecker():
     "/about",
     response_description="System information",
 )
-def show_system_info():
+async def show_system_info():
     """
     Get information about the environment and PyTorch version, for debugging.
     """
