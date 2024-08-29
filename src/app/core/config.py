@@ -14,7 +14,7 @@ class AppSettings(BaseSettings):
     APP_NAME: str = config("APP_NAME", default="FastAPI app")
     APP_SUMMARY: str | None = config("APP_SUMMARY", default=None)
     APP_DESCRIPTION: str | None = config("APP_DESCRIPTION", default=None)
-    APP_VERSION: str | None = config("APP_VERSION", default=None)
+    APP_VERSION: str | None = config("APP_VERSION", default="0.1.0")
     LICENSE_NAME: str | None = config("LICENSE", default=None)
     LICENSE_URL: str | None = config("LICENSE_URL", default=None)
     CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
@@ -32,11 +32,11 @@ class CryptSettings(BaseSettings):
 class CNNSettings:
     MODEL_PATH: str = config(
         "MODEL_PATH",
-        default=os.path.join("ml", "mobilenet_v3_large.pth"),
+        default=os.path.join("core", "ml", "mobilenet_v3_large.pth"),
     )
     LABEL_PATH: str = config(
         "LABEL_PATH",
-        default=os.path.join("ml", "imagenet_classes.txt"),
+        default=os.path.join("core", "ml", "imagenet_classes.txt"),
     )
 
 
