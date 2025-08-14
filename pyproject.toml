@@ -15,7 +15,7 @@ packages = [{ include = "app", from = "src" }]
 python = ">=3.10,<4.0"
 fastapi = "^0.111.1"
 uvicorn = "^0.30.3"
-gunicorn = "^22.0.0"
+gunicorn = "^23.0.0"
 SQLAlchemy = "^2.0.31"
 sqlalchemy-utils = "^0.41.2"
 pydantic = "^2.8.2"
